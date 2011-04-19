@@ -1,0 +1,43 @@
+selector
+  : simple_selector [ combinator simple_selector ]*
+  ;
+simple_selector
+  : element_name? [ HASH | CLASS | attrib | pseudo ]* S*
+  ;
+element_name
+  : IDENT | '*'
+  ;
+attrib
+  : '[' S* IDENT S* [ [ '=' | INCLUDES | DASHMATCH ] S*
+    [ IDENT | STRING ] S* ]? ']'
+  ;
+pseudo
+  : ':' [ IDENT | FUNCTION S* IDENT S* ')' ]
+  ;
+declaration
+  : property ':' S* expr prio?
+  | /* empty */
+  ;
+prio
+  : IMPORTANT_SYM S*
+  ;
+expr
+  : term [ operator term ]*
+  ;
+term
+  : unary_operator?
+    [ NUMBER S* | PERCENTAGE S* | LENGTH S* | EMS S* | EXS S* | ANGLE S* |
+      TIME S* | FREQ S* | function ]
+  | STRING S* | IDENT S* | URI S* | UNICODERANGE S* | hexcolor
+  ;
+function
+  : FUNCTION S* expr ')' S*
+  ;
+/*
+ * There is a constraint on the color that it must
+ * have either 3 or 6 hex-digits (i.e., [0-9a-fA-F])
+ * after the "#"; e.g., "#000" is OK, but "#abcd" is not.
+ */
+hexcolor
+  : HASH S*
+  ;
