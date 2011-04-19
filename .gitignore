@@ -1,0 +1,17 @@
+.svn
+bin
+build
+dist
+*~
+*#
+*.fasl
+bin/gainesville-green.com
+etc/apache.conf
+etc/init.d
+uploads
+imports/Alachua.mdb
+imports/new-gru-imports/
+backtraces
+log
+www/robots.txt
+imports/GNV Weather/
