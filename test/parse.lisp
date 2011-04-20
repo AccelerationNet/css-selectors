@@ -1,96 +1,126 @@
 (common-lisp:in-package :css-selectors.test)
 
 (deftest basic-parse (parse)
-  (assert-equal
-   '(:selector (:class "foo"))
+  (assert-equal '(:class "foo")
    (css::parse-results " .foo "))
   
   (assert-equal
-   '(:selectors
-     (:selector (:class "foo"))
-     (:selector (:hash "bar")))
+   '(:or 
+     (:class "foo")
+     (:hash "bar"))
    (css::parse-results " .foo , #bar "))
 
   (assert-equal
-   '(:selector (:immediate-child (:selector (:class "foo"))
-		(:selector (:hash "bar"))))
+   '(:immediate-child (:class "foo") (:hash "bar"))
    (css::parse-results " .foo > #bar "))
   
   (assert-equal
-   '(:selector (:immediate-child (:selector (:class "foo"))
-		(:selector (:hash "bar"))))
+   ' (:immediate-child (:class "foo")
+		       (:hash "bar"))
    (css::parse-results " .foo>#bar "))
   
   (assert-equal
-   '(:selector :everything (:class "foo") (:element "bar") (:hash "bas"))
+   '(:child :everything (:child (:class "foo") (:child (:element "bar") (:hash "bas"))))
    (css::parse-results " * .foo bar #bas "))
 
   (assert-equal
-   '(:selector (:and :everything (:class "foo")) (:element "bar") (:hash "bas"))
+   '(:child (:and :everything (:class "foo"))
+     (:child (:element "bar") (:hash "bas")))
    (css::parse-results " *.foo bar #bas "))
 
   (assert-equal
-   '(:selector (:and :everything (:class "foo")) (:and (:element "bar") (:hash "bas")))
+   '(:child (:and :everything (:class "foo"))
+     (:and (:element "bar") (:hash "bas")))
    (css::parse-results " *.foo bar#bas "))
+  
+  )
+
+(deftest combinator-parse (parse)
+  (assert-equal
+   '(:or (:class "foo") (:class "bar"))
+   (css::parse-results " .foo , .bar "))
+  (assert-equal
+   '(:or (:class "foo") (:class "bar"))
+   (css::parse-results ".foo,.bar"))
+  
+  (assert-equal
+   '(:or
+     (:class "foo")
+     (:immediate-child
+      (:class "bar")
+      (:immediatly-preceded-by
+       (:hash "bar")
+       (:element "bast"))))
+   (css::parse-results " .foo , .bar > #bar + bast"))
   
   )
 
 (deftest attrib-parse (parse)
   (assert-equal
-   '(:selector (:and (:element "foo") (:attribute "bar")))
+   '(:and (:element "foo") (:attribute "bar"))
    (css::parse-results " foo[bar]  "))
 
   (assert-equal
-   '(:selector (:element "foo") (:attribute "bar"))
+   '(:child
+     (:element "foo")
+     (:attribute "bar"))
    (css::parse-results " foo  [bar]  "))
 
   (assert-equal
-   '(:selector (:element "foo") (:attribute "bar" (:includes "bast")))
+   '(:child (:element "foo")
+     (:attribute "bar" (:includes "bast")))
    (css::parse-results " foo  [bar~=bast]  "))
 
   (assert-equal
-   '(:selector (:and (:element "foo") (:attribute "bar" (:includes "bast"))))
+   '(:and (:element "foo") (:attribute "bar" (:includes "bast")))
    (css::parse-results " foo[bar~=bast]  "))
 
   (assert-equal
-   '(:selector (:attribute "bar" (:includes "bast")))
+   '(:attribute "bar" (:includes "bast"))
    (css::parse-results " [bar~=bast]  "))
 
   (assert-equal
-   '(:selector (:attribute "bar" (:dashmatch "bast")))
+   '(:attribute "bar" (:dashmatch "bast"))
    (css::parse-results " [bar|=bast]  "))
 
   (assert-equal
-   '(:selector (:attribute "bar" (:substring "bast")))
+   '(:attribute "bar" (:substring "bast"))
    (css::parse-results " [bar*=bast]  "))
 
   (assert-equal
-   '(:selector (:attribute "bar" (:equals "bast")))
+   '(:attribute "bar" (:equals "bast"))
    (css::parse-results " [bar='bast']  "))
 
   (assert-equal
-   '(:selector (:attribute "bar" (:begins-with "bast")))
+   '(:attribute "bar" (:begins-with "bast"))
    (css::parse-results " [bar^='bast']  "))
 
   (assert-equal
-   '(:selector (:attribute "bar" (:ends-with "bast")))
+   '(:attribute "bar" (:ends-with "bast"))
    (css::parse-results " [bar$='bast']  ")))
 
 (deftest pseudo-parse (parse)
   (assert-equal
-   '(:selector (:and (:element "foo") (:pseudo "link")))
+   '(:and (:element "foo") (:pseudo "link"))
    (css::parse-results " foo:link  "))
 
   (assert-equal
-   '(:selector (:element "foo") (:pseudo "link"))
+   '(:child (:element "foo") (:pseudo "link"))
    (css::parse-results " foo :link  "))
 
   (assert-equal
-   '(:selector (:and
-		(:and (:element "label")
-		 (:pseudo "not" (:selector (:attribute "for"))))
-		(:pseudo "has" (:selector (:element "a")))))
+   '(:and
+     (:and (:element "label")
+      (:pseudo "not" (:attribute "for")))
+     (:pseudo "has" (:element "a")))
    (css::parse-results " label:not([for]):has(a)"))
-)
+
+  (assert-equal
+   '(:and
+     (:and (:element "label")
+      (:pseudo "not" (:attribute "for")))
+     (:pseudo "has" (:and (:element "a") (:class "bar"))))
+   (css::parse-results " label:not(  [for]):has( a.bar)"))
+  )
 
 

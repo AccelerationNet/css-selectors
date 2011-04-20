@@ -175,40 +175,30 @@
 
 
 (yacc:define-parser *css3-selector-parser*
-  (:start-symbol multi-selector)
+  (:start-symbol selector)
   (:terminals (:|,| :|*| :|)| :|(| :|>| :|+| :|~| :|:| :|[| :|]| :|=|
 		:S :IDENT :HASH :CLASS :STRING :FUNCTION
 		:INCLUDES :DASHMATCH :BEGINS-WITH :ENDS-WITH :SUBSTRING ))
-  (:precedence )
-
-  (multi-selector
-   (selector #'identity)
-   #.(rule (selector spaces :|,| spaces multi-selector)
-       (let* ((others (if (eql :selectors (first multi-selector))
-			  (cdr multi-selector)
-			  (list multi-selector))))
-	 `(:selectors ,selector ,@others))))
-  
+  (:precedence ((:left :|)| :s :|,| :|+| :|~| )) )
   (selector
-   #.(rule (simple-selector)
-       `(:selector ,simple-selector))
-   
-   #.(rule (selector spaces combinator spaces simple-selector)
-       `(:selector (,combinator ,selector (:selector ,simple-selector))))
-   
-   #.(rule (selector spaces simple-selector)       
-       (if spaces
-	   `(:selector ,@(rest selector) ,simple-selector)
-	   ;; no space this needs to be an :and node 
-	   (let ((others (butlast (cdr selector)))
-		 (anded (first (last selector))))
-	     `(:selector ,@others (:and ,anded ,simple-selector)))))
-   )
+   #.(rule (and-sel combinator selector)
+       (list combinator and-sel selector))
+   #.(rule (and-sel) and-sel))
   
-  (combinator (:|+| (constantly :immediatly-preceded-by))
-	      (:|~| (constantly :preceded-by))
-	      (:|>| (constantly :immediate-child)))
+  (combinator
+   (:s (constantly :child))
+   (spaces :|,| spaces (constantly :or))
+   (spaces :|>| spaces (constantly :immediate-child))
+   (spaces :|~| spaces (constantly :preceded-by))
+   (spaces :|+| spaces (constantly :immediatly-preceded-by))
+   )
 
+  (and-sel ;; and needs to bind as tightly as possible
+   #.(rule (and-sel simple-selector)
+       `(:and ,and-sel ,simple-selector))
+   #.(rule (simple-selector)
+       simple-selector))
+  
   (simple-selector
    #.(rule (:HASH) `(:hash ,(but-first hash)))
    #.(rule (:CLASS) `(:class ,(but-first class)))
@@ -219,7 +209,7 @@
 
   (attrib
    #.(rule (:|[| spaces :IDENT spaces :|]|)
-       `(:attribute ,(third ident)))
+       `(:attribute ,ident))
    
    #.(rule (:|[| spaces :IDENT spaces attrib-value-def spaces :|]|)
        `(:attribute ,ident ,attrib-value-def))
@@ -245,9 +235,8 @@
    #.(rule (:|:| :IDENT) (list :pseudo ident))
    
    ;; trailing spaces was causing s/r conflict - still straightening it out
-   #.(rule (:|:| :FUNCTION spaces multi-selector ;spaces
-	     :|)|)
-       (list :pseudo (but-last function) multi-selector)))
+   #.(rule (:|:| :FUNCTION spaces selector spaces  :|)|)
+       (list :pseudo (but-last function) selector)))
   
   (spaces
    (:S )
