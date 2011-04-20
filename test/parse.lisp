@@ -64,6 +64,18 @@
 	(:element "bast")))
       (:and (:element "c") (:hash "foo"))))
    (css::parse-results " a.foo , b.bar > #bar + bast, c#foo"))
+
+    (assert-equal
+   '(:or
+     (:and (:element "a") (:class "foo"))
+     (:or
+      (:immediate-child
+       (:and (:element "b") (:class "bar"))
+       (:immediatly-preceded-by
+	(:hash "bar")
+	(:element "bast")))
+      (:and (:element "c") (:hash "foo"))))
+   (css::parse-results " a.foo , b.bar > #bar + bast, c#foo"))
   
   )
 
@@ -133,6 +145,17 @@
       (:pseudo "not" (:attribute "for")))
      (:pseudo "has" (:and (:element "a") (:class "bar"))))
    (css::parse-results " label:not(  [for]   ):has( a.bar)"))
+
+  (assert-equal
+   '(:pseudo "not"
+     (:or (:attribute "for")
+      (:or (:and :everything (:class "foo"))
+       (:immediate-child
+	(:element "a")
+	(:immediate-child
+	 (:element "b")
+	 (:element "c"))))))
+   (css::parse-results " :not(  [for],*.foo  ,  a>b > c )"))
   )
 
 

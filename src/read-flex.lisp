@@ -170,8 +170,21 @@
   (let ((arg-names (arg-list-var-names args)))
     `#'(lambda ,args (declare (ignorable ,@arg-names)) ,@body)))
 
+(defun %rule (args body)
+  `(,@args (lam ,(uniquify-and-reintern args) ,@body)))
+
 (defmacro rule (args &body body)
-  `(quote (,@args (lam ,(uniquify-and-reintern args) ,@body))))
+  `(quote ,(%rule args body)))
+
+(defun %rule-set (name rules)
+  (iter
+    (for (args &rest body) in rules)
+    (if (first-iteration-p) (collect name))
+    (collect (%rule args body))))
+
+(defmacro rule-set (name &body rules)
+  `(quote ,(%rule-set name rules)))
+
 
 
 (yacc:define-parser *css3-selector-parser*
@@ -196,14 +209,11 @@
 	 ;; to avoid s/r
 	 (and-sel spaces) and-sel))
 
-  (combinator
-   ;; (spaces :|,| spaces (constantly :or))
-   
+  (combinator 
    (:s (constantly :child))
    (spaces :|>| spaces (constantly :immediate-child))
    (spaces :|~| spaces (constantly :preceded-by))
-   (spaces :|+| spaces (constantly :immediatly-preceded-by))
-   )
+   (spaces :|+| spaces (constantly :immediatly-preceded-by)))
   
   (and-sel
    #.(rule (and-sel simple-selector)
@@ -255,4 +265,75 @@
 (defun parse-results (&optional (inp "#foo, .foo #bar .bast,   .foo > bar[src~=blech],  .foo:hover"))
   (setf inp (adwutils:trim-whitespace inp))
   (yacc:parse-with-lexer (make-css3-lexer inp) *css3-selector-parser*))
+
+(defun attrib-includes? (node attrib value)
+  (member value
+	  (cl-ppcre:split "\\s+" (buildnode:get-attribute node attrib))
+	  :test #'string-equal))
+
+(defun transform-css-parse-tree (tree)
+  (case (car tree)
+    (:or `(or ,(transform-css-parse-tree (second tree))
+	      ,(transform-css-parse-tree (third tree))))
+    (:and `(and ,(transform-css-parse-tree (second tree))
+		,(transform-css-parse-tree (third tree))))
+    (:class `(attrib-includes? *node* "class" ,(second tree)))
+    (:hash `(string-equal (buildnode:get-attribute *node* :id) ,(second tree)))
+    (:element `(string-equal (dom:tag-name *node*) ,(second tree)))
+    (:everything 'T)
+    (:attribute
+       (let ((attrib (second tree)))
+	 (ecase (length tree)
+	   (2 `(not (null (buildnode:get-attribute *node* attrib))))
+	   (3
+	      (destructuring-bind (match-type match-to) (third tree)
+		(case match-type
+		  (:equals `(string-equal (buildnode:get-attribute *node* ,attrib) ,match-to))
+		  (:includes `(attrib-includes? *node* ,attrib ,match-to))
+		  (:dashmatch `(member ,match-to
+				       (cl-ppcre:split "-" (buildnode:get-attribute *node* ,attrib))
+				       :test #'string-equal))
+		  (:begins-with `(alexandria:starts-with-subseq
+				  ,match-to
+				  (buildnode:get-attribute *node* ,attrib)
+				  :test #'char-equal))
+		  (:ends-with `(alexandria:ends-with-subseq
+				,match-to
+				(buildnode:get-attribute *node* ,attrib)
+				:test #'char-equal))
+		  (:substring `(search ,match-to (buildnode:get-attribute *node* ,attrib)
+				       :test #'string-equal ))))))))
+    (:immediate-child
+       `(and ,(transform-css-parse-tree (second tree ))
+	     (some (lambda (*node*)
+		     ,(transform-css-parse-tree (third tree)))
+		   (dom:child-nodes *node*))))
+    (:child `(and ,(transform-css-parse-tree (second tree ))
+		  (iter (for -n- in-dom *node*)
+			(let* ((*node* -n-)
+			       (node-matches ,(transform-css-parse-tree (third tree))))
+			  (thereis node-matches)))))
+    (:immediatly-preceded-by
+       `(and ,(transform-css-parse-tree (second tree))
+	     (let ((*node* (dom:previous-sibling *node*)))
+	       ,(transform-css-parse-tree (third tree)))))
+    (:preceded-by
+       `(and ,(transform-css-parse-tree (second tree))
+	     (iter (with -n- = *node*)
+		   (for -n- = (dom:previous-sibling *node*))
+		   (while -n-)
+		   (let ((*node* -n-))
+		     (thereis ,(transform-css-parse-tree (third tree)))))))))
+
+(defun %lisp-parse-results (inp)
+  (transform-css-parse-tree (parse-results inp)))
+
+(defun compile-css-selector (inp)
+  (let ((tree (parse-results inp)))
+    `(lambda (&optional (root buildnode:*document*))
+       (iter gatherer
+	     (for -n- in-dom root)
+	     (let ((*node* -n-))
+	       ,(transform-css-parse-tree tree))
+	    ))))
 
