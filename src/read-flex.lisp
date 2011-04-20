@@ -143,6 +143,37 @@
 (defun but-last (s) (subseq s 0 (- (length s) 1)))
 (defun but-first (s) (subseq s 1))
 
+(defun is-special? (s)
+  (when (or (symbolp s) (stringp s))
+    (char-equal #\& (elt (string s) 0))))
+
+(defun arg-list-var-names (args)
+  (iter (for i in args)
+	(unless (is-special? i)
+	  (typecase i
+	    (symbol (collect i))
+	    (list (collect (car i)))))))
+
+(defun uniquify-and-reintern (x &optional (package *package*))
+  (iter (for (sym . rest) on x)
+	(for count = (iter (for s in new)
+			   (when (alexandria:starts-with-subseq
+				  (symbol-name sym) (symbol-name s)
+				  :test #'char-equal)
+			     (count s))))
+	(if (or (find sym rest) (plusp count))
+	    (collect (intern #?"${sym}-${count}" package) into new)
+	    (collect (intern (symbol-name sym) package) into new))
+	(finally (return new))))
+
+(defmacro lam (args &body body)
+  (let ((arg-names (arg-list-var-names args)))
+    `#'(lambda ,args (declare (ignorable ,@arg-names)) ,@body)))
+
+(defmacro rule (args &body body)
+  `(quote (,@args (lam ,(uniquify-and-reintern args) ,@body))))
+
+
 (yacc:define-parser *css3-selector-parser*
   (:start-symbol multi-selector)
   (:terminals (:|,| :|*| :|)| :|(| :|>| :|+| :|~| :|:| :|[| :|]| :|=|
@@ -151,80 +182,72 @@
   (:precedence )
 
   (multi-selector
-   (selector spaces :|,| spaces multi-selector
-	     (lambda (&rest args)
-	       (let* ((others (nth 4 args))
-		      (others (if (eql :selectors (first others))
-				  (cdr others)
-				  (list others))))
-		 `(:selectors ,(nth 0 args)
-			      ,@others))))
-   (selector #'identity))
+   (selector #'identity)
+   #.(rule (selector spaces :|,| spaces multi-selector)
+       (let* ((others (if (eql :selectors (first multi-selector))
+			  (cdr multi-selector)
+			  (list multi-selector))))
+	 `(:selectors ,selector ,@others))))
   
   (selector
-   (selector spaces combinator spaces simple-selector
-    (lambda (&rest args) `(:selector (,(nth 2 args)
-				  ,(nth 0 args)
-				  (:selector ,(nth 4 args))
-				  ))))
-   (selector spaces simple-selector
-    (lambda (sel spaces simp)
-      (if spaces
-	  `(:selector ,@(rest sel) ,simp)
-	  ;; no space this needs to be an :and node 
-	  (let ((others (butlast (cdr sel)))
-		(anded (first (last sel))))
-	  `(:selector ,@others (:and ,anded ,simp))))))
-   (simple-selector
-    (lambda (it) `(:selector ,it))))
+   #.(rule (simple-selector)
+       `(:selector ,simple-selector))
+   
+   #.(rule (selector spaces combinator spaces simple-selector)
+       `(:selector (,combinator ,selector (:selector ,simple-selector))))
+   
+   #.(rule (selector spaces simple-selector)       
+       (if spaces
+	   `(:selector ,@(rest selector) ,simple-selector)
+	   ;; no space this needs to be an :and node 
+	   (let ((others (butlast (cdr selector)))
+		 (anded (first (last selector))))
+	     `(:selector ,@others (:and ,anded ,simple-selector)))))
+   )
   
-  (simple-selector
-   (:HASH (lambda ( o ) (list :hash (but-first o))))
-   (:CLASS (lambda ( o ) (list :class (but-first o))))
-   (:IDENT (lambda ( it ) (list :element it)))
-   (:|*| (constantly :everything))
-   (attrib #'identity)
-   (pseudo #'identity))
-
   (combinator (:|+| (constantly :immediatly-preceded-by))
 	      (:|~| (constantly :preceded-by))
 	      (:|>| (constantly :immediate-child)))
 
+  (simple-selector
+   #.(rule (:HASH) `(:hash ,(but-first hash)))
+   #.(rule (:CLASS) `(:class ,(but-first class)))
+   #.(rule (:IDENT) `(:element ,ident))
+   (:|*| (constantly :everything))
+   (attrib #'identity)
+   (pseudo #'identity))
+
   (attrib
-   (:|[| spaces :IDENT spaces :|]|
-     (lambda (&rest args) `(:attribute ,(third args))))
+   #.(rule (:|[| spaces :IDENT spaces :|]|)
+       `(:attribute ,(third ident)))
    
-   (:|[| spaces :IDENT spaces attrib-value-def spaces :|]|
-     (lambda (&rest args)
-       `(:attribute ,(nth 2 args) ,(nth 4 args))))
+   #.(rule (:|[| spaces :IDENT spaces attrib-value-def spaces :|]|)
+       `(:attribute ,ident ,attrib-value-def))
    )
 
   (attrib-value-def
-   (:|=| spaces attrib-value
-     (lambda (&rest args) (list :equals (nth 2 args))))
-   (:INCLUDES spaces attrib-value
-	      (lambda (&rest args) (list :includes (nth 2 args))))
-   (:DASHMATCH spaces attrib-value
-	       (lambda (&rest args) (list :dashmatch (nth 2 args))))
-   (:BEGINS-WITH spaces attrib-value
-		 (lambda (&rest args) (list :begins-with (nth 2 args))))
-   (:ENDS-WITH spaces attrib-value
-	       (lambda (&rest args) (list :ends-with (nth 2 args))))
+   #.(rule (attrib-match-type attrib-value)
+       (list attrib-match-type attrib-value)))
 
-   (:SUBSTRING spaces attrib-value
-	       (lambda (&rest args) (list :substring (nth 2 args)))))
+  (attrib-match-type
+   #.(rule (:|=|) :equals)
+   #.(rule (:includes) :includes)
+   #.(rule (:dashmatch) :dashmatch)
+   #.(rule (:begins-with) :begins-with)
+   #.(rule (:ends-with) :ends-with)
+   #.(rule (:substring) :substring))
 
   (attrib-value
-   (:IDENT (lambda (&rest args) (nth 0 args)))
-   (:STRING (lambda (&rest args) (but-quotes (nth 0 args)))))
+   #.(rule (:ident) ident)
+   #.(rule (:string) (but-quotes string)))
   
   (pseudo
-   (:|:| :IDENT
-     (lambda (_ ident) (declare (ignore _))
-       (list :pseudo ident)))
-   (:|:| :FUNCTION multi-selector :|)|
-     (lambda (&rest args)
-       (list :pseudo (but-last (nth 1 args)) (nth 2 args)))))
+   #.(rule (:|:| :IDENT) (list :pseudo ident))
+   
+   ;; trailing spaces was causing s/r conflict - still straightening it out
+   #.(rule (:|:| :FUNCTION spaces multi-selector ;spaces
+	     :|)|)
+       (list :pseudo (but-last function) multi-selector)))
   
   (spaces
    (:S )
