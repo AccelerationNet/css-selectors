@@ -180,24 +180,35 @@
 		:S :IDENT :HASH :CLASS :STRING :FUNCTION
 		:INCLUDES :DASHMATCH :BEGINS-WITH :ENDS-WITH :SUBSTRING ))
   (:precedence ((:left :|)| :s :|,| :|+| :|~| )) )
-  (selector
-   #.(rule (and-sel combinator selector)
-       (list combinator and-sel selector))
-   #.(rule (and-sel) and-sel))
   
+  (selector #.(rule (or-sel) or-sel))
+
+  (or-sel
+   #.(rule (comb-sel :|,| spaces or-sel)
+       (list :or comb-sel or-sel))
+   #.(rule (comb-sel) comb-sel))
+  
+  (comb-sel
+   #.(rule (and-sel combinator comb-sel)
+       (list combinator and-sel comb-sel))
+   #.(rule
+	 ;; need to handle trailing spaces here
+	 ;; to avoid s/r
+	 (and-sel spaces) and-sel))
+
   (combinator
+   ;; (spaces :|,| spaces (constantly :or))
+   
    (:s (constantly :child))
-   (spaces :|,| spaces (constantly :or))
    (spaces :|>| spaces (constantly :immediate-child))
    (spaces :|~| spaces (constantly :preceded-by))
    (spaces :|+| spaces (constantly :immediatly-preceded-by))
    )
-
-  (and-sel ;; and needs to bind as tightly as possible
+  
+  (and-sel
    #.(rule (and-sel simple-selector)
-       `(:and ,and-sel ,simple-selector))
-   #.(rule (simple-selector)
-       simple-selector))
+       (list :and and-sel simple-selector))
+   #.(rule (simple-selector) simple-selector))
   
   (simple-selector
    #.(rule (:HASH) `(:hash ,(but-first hash)))
@@ -234,8 +245,7 @@
   (pseudo
    #.(rule (:|:| :IDENT) (list :pseudo ident))
    
-   ;; trailing spaces was causing s/r conflict - still straightening it out
-   #.(rule (:|:| :FUNCTION spaces selector spaces  :|)|)
+   #.(rule (:|:| :FUNCTION spaces selector :|)|)
        (list :pseudo (but-last function) selector)))
   
   (spaces
@@ -246,22 +256,3 @@
   (setf inp (adwutils:trim-whitespace inp))
   (yacc:parse-with-lexer (make-css3-lexer inp) *css3-selector-parser*))
 
-(defun transform-parse-tree (pt)
-  (case (first pt)
-    (:selectors
-       `(or ,@(iter (for clause in pt)
-		    (collect (transform-parse-tree clause)))))
-    (:selector)
-    (:pseudo)
-    (:attribute)
-    (:preceded-by)
-    (:immediate-child)
-    (:immediatly-preceded-by)))
-
-#|
-(defun parse-tree-to-matcher-lambda (pt)
-  (lambda (node)
-    
-    ))
-
-|#
