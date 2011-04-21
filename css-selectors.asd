@@ -20,7 +20,9 @@
 	      ((:file "packages")
 	       (:file "read-flex" :depends-on ("packages"))
 	       )))
-    :depends-on (:asdf-system-connections :iterate :cl-lex :yacc :cl-ppcre))
+    :depends-on (:asdf-system-connections
+		 :iterate :yacc :cl-ppcre
+		 :buildnode :alexandria :cxml))
 
 (asdf:defsystem css-selectors-test
   :description "the part of adwcode"
