@@ -23,3 +23,9 @@
     (:nicknames :css)
   (:use :cl :iter)
   (:export ))
+
+
+(defpackage :css-selectors.pseudo
+    (:nicknames :pseudo)
+  (:use :css :iter :cl)
+  (:export))

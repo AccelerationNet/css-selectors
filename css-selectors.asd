@@ -16,21 +16,24 @@
     :version "0.1"
     :components
     ((:module :src
+	      :serial T
 	      :components
 	      ((:file "packages")
-	       (:file "read-flex" :depends-on ("packages"))
-	       )))
+	       (:file "parse")
+	       (:file "pseudo")
+	       (:file "compile"))
+	       ))
     :depends-on (:asdf-system-connections
 		 :iterate :yacc :cl-ppcre
 		 :buildnode :alexandria :cxml))
 
 (asdf:defsystem css-selectors-test
-  :description "the part of adwcode"
+  :description "test for the css-selector library"
   :depends-on (:css-selectors :lisp-unit)
   :components ((:module :test
 			:serial T
 			:components
 			((:file "setup")
-			 (:file "basic")
-			 
+			 (:file "parse")
+			 (:file "selectors")
 			 ))))

@@ -49,8 +49,13 @@
   (assert-true (node-matches? +footer+ "#footer[class~=\"box\"]"))
   (assert-true (node-matches? +footer+ ".box[title^=\"this-be\"]"))
   (assert-true (node-matches? +footer+ "#header ~ [title$=footer-yo]"))
-  (assert-true (node-matches? +footer+ ".box.layout[id=footer]")))
+  (assert-true (node-matches? +footer+ ".box.layout[id=footer]"))
+  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:has( .contact-info )"))
+  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info)"))
+  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info>.name)"))
+  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:has( .contact-info > .name + .phone )"))
+  )
 
 (deftest test-query (matcher query)
-  (assert-true T))
+  (assert-eql 7 (length (query "div" +test-doc+))))
 
