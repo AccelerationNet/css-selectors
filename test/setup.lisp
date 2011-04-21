@@ -25,19 +25,21 @@
 	      (union (ensure-list (get tag :tests))
 		     (list name))))
   `(lisp-unit:define-test ,name
-     ,@body))
+     (adwutils:time-and-log-around (css.info "running ~A" ',name)
+       ,@body)))
 
 (defmacro test-w/doc (name (&rest args) &body body)
   `(deftest ,name (,@args)
      (buildnode:with-html-document (progn ,@body nil))))
 
 (defun run-tests-with-debugging (&key suites tests)
-  (let* ((lisp-unit::*use-debugger* T)
-	 (tests (append (ensure-list tests)
-			(iter (for suite in (ensure-list suites))
-			      (appending (get suite :tests)))))
-	 (out (with-output-to-string (lisp-unit::*lisp-unit-stream*)
-		(lisp-unit::run-test-thunks
-		 (lisp-unit::get-test-thunks
-		  (if (null tests) (get-tests *package*) tests))))))
-    (css.info "~% ** TEST RESULTS ** ~%-----------~%~A~%------------~%" out)))
+  (adwutils:time-and-log-around (css.info "running all tests")
+    (let* ((lisp-unit::*use-debugger* T)
+	   (tests (append (ensure-list tests)
+			  (iter (for suite in (ensure-list suites))
+				(appending (get suite :tests)))))
+	   (out (with-output-to-string (lisp-unit::*lisp-unit-stream*)
+		  (lisp-unit::run-test-thunks
+		   (lisp-unit::get-test-thunks
+		    (if (null tests) (get-tests *package*) tests))))))
+      (css.info "~% ** TEST RESULTS ** ~%-----------~%~A~%------------~%" out))))
