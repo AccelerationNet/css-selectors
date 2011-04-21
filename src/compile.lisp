@@ -81,14 +81,14 @@
 (defun %compile-css-node-matcher-lambda (inp)
   `(lambda (%node%) ,(%lisp-parse-results inp)))
 
-(defun compile-css-node-matcher (inp)  
-  (compile nil (%compile-css-node-matcher-lambda inp)))
-
-(defun %node-matches? (node inp)
+(defun compile-css-node-matcher (inp)
   (typecase inp
     ((or string list)
-       (funcall (compile-css-node-matcher inp) node))
-    (function (funcall inp node))))
+       (compile nil (%compile-css-node-matcher-lambda inp)))
+    (function inp)))
+
+(defun %node-matches? (node inp)
+  (funcall (compile-css-node-matcher inp) node))
 
 (defun node-matches? (node inp)
   (%node-matches? node inp))

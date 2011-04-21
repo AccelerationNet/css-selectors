@@ -88,7 +88,9 @@
   (assert-true (node-matches? +footer+ ".box.layout[id=footer]:has( .contact-info )"))
   (assert-true (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info)"))
   (assert-true (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info>.name)"))
-  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:is(#footer)"))  
+  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:is(#footer)"))
+  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:not(#header)"))
+  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:not( .contact-info )"))
   (assert-true (node-matches?
 		+footer+
 		".box.layout[id=footer]:has( .contact-info > .name + .phone )"))
@@ -96,10 +98,13 @@
   (assert-true (node-matches? +header+ "#header:first-child"))
   (assert-true (node-matches? (dom:parent-node +header+) ":only-child"))
   (assert-true (node-matches? (dom:parent-node +header+) "*:only-child"))
+
+  
   )
 
 (deftest test-query (matcher query)
-  (assert-eql 7 (length (query "div" +test-doc+)))
+  (assert-eql 7 (length (query "div" +doc+)))
   (assert-eql +header+ (first (query "#page > div#header" +doc+)))
+  (assert-eql +header+ (first (query "#page div#header" +doc+)))
   (assert-false (first (query "div#page" (query "div#page" +doc+)))))
 
