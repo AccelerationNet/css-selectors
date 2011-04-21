@@ -31,10 +31,8 @@
 	   (xhtml:div '(:id "footer" :class "layout box bottom-aligned"
 			:title "this-be-the-page-footer-yo")
 	     (xhtml:div '(:class "contact-info")
-	       (xhtml:span '(:class "name")
-		 "Acceleration.net")
-	       (xhtml:span '(:class "phone")
-		 "352-335-6500x123")))))))))
+	       (xhtml:span '(:class "name") "Acceleration.net")
+	       (xhtml:span '(:class "phone") "352-335-6500x123")))))))))
 
 (defun matcher-basic ()
   ;; just proving the compiler macros are doing something
@@ -59,7 +57,7 @@
     (node-matches? +footer+ ".box.layout[id=footer]:has( .contact-info )")
     (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info)")
     (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info>.name)")
-    (node-matches? +footer+ ".box.layout[id=footer]:is(#footer)")  
+    (node-matches? +footer+ ".box.layout[id=footer]:is(#footer)")
     (node-matches?
      +footer+
      ".box.layout[id=footer]:has( .contact-info > .name + .phone )")
@@ -91,6 +89,10 @@
   (assert-true (node-matches? +footer+ ".box.layout[id=footer]:is(#footer)"))
   (assert-true (node-matches? +footer+ ".box.layout[id=footer]:not(#header)"))
   (assert-true (node-matches? +footer+ ".box.layout[id=footer]:not( .contact-info )"))
+  (assert-false (node-matches? +footer+ " #footer:nth-child(even)"))
+  (assert-true (node-matches? +footer+ " #footer:nth-child(odd)"))
+  (assert-false (node-matches? +footer+ " #footer:nth-last-child(even)"))
+  (assert-true (node-matches? +footer+ " #footer:nth-last-child(odd)"))
   (assert-true (node-matches?
 		+footer+
 		".box.layout[id=footer]:has( .contact-info > .name + .phone )"))

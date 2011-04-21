@@ -71,7 +71,14 @@
 		  `(function ,(%compile-css-node-matcher-lambda
 			       (transform-css-parse-tree subselector))))))
 	 (let ((fn (intern (string-upcase name) :pseudo)))
-	   `(,fn %node% ,@subselector))))))
+	   `(,fn %node% ,@subselector))))
+    (:nth-pseudo
+       (destructuring-bind (pseudo name (nth-expr mul add)) tree
+	 (declare (ignore pseudo nth-expr))
+	 (let ((fn (intern (string-upcase name) :pseudo)))
+	   `(,fn %node% ,mul ,add))
+	 ))
+    ))
 
 (defun %lisp-parse-results (inp)
   (typecase inp

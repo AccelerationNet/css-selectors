@@ -190,7 +190,7 @@
 (yacc:define-parser *css3-selector-parser*
   (:start-symbol selector)
   (:terminals (:|,| :|*| :|)| :|(| :|>| :|+| :|~| :|:| :|[| :|]| :|=|
-		:S :IDENT :HASH :CLASS :STRING :FUNCTION
+		:S :IDENT :HASH :CLASS :STRING :FUNCTION :NTH-FUNCTION
 		:INCLUDES :DASHMATCH :BEGINS-WITH :ENDS-WITH :SUBSTRING ))
   (:precedence ((:left :|)| :s :|,| :|+| :|~| )) )
   
@@ -256,7 +256,17 @@
    #.(rule (:|:| :IDENT) (list :pseudo ident))
    
    #.(rule (:|:| :FUNCTION spaces selector :|)|)
-       (list :pseudo (but-last function) selector)))
+       (list :pseudo (but-last function) selector))
+   #.(rule (:|:| :NTH-FUNCTION spaces nth-expr spaces :|)| )
+       (list :nth-pseudo (but-last nth-function) nth-expr)))
+
+  (nth-expr
+   #.(rule (:ident)
+       `(:nth-expr
+	 ,@(cond ((string-equal ident "even") (list 2 0))
+		 ((string-equal ident "odd") (list 2 1))
+		 (T (error "invalid nth subexpression")))))
+   )
   
   (spaces
    (:S )

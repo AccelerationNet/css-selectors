@@ -22,7 +22,10 @@
 (defpackage :css-selectors
     (:nicknames :css)
   (:use :cl :iter)
-  (:export ))
+  (:export :query
+	   :node-matches?
+	   :parse-results
+	   :compile-css-node-matcher))
 
 
 (defpackage :css-selectors.pseudo

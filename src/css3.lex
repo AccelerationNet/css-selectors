@@ -9,6 +9,7 @@ string2		\'([\t !#$%&(-~]|\\{nl}|\")*\'
 
 ident		[-]?{nmstart}{nmchar}*
 name		{nmchar}+
+int		[0-9]+
 num		[0-9]+|[0-9]*\.[0-9]+
 string		{string1}|{string2}
 url		([!#$%&*-~])*
@@ -29,6 +30,7 @@ range		\?{1,6}|{h}(\?{0,5}|{h}(\?{0,4}|{h}(\?{0,3}|{h}(\?{0,2}|{h}(\??|{h})))))
 "^="			{return BEGINS_WITH;}
 "*="			{return SUBSTRING;}
 
+nth-(child|last-child|of-type|nth-last-of-type)"("			{return NTH-FUNCTION;}
 {ident}"("		{return FUNCTION;}
 {string}		{return STRING;}
 {ident}			{return IDENT;}
