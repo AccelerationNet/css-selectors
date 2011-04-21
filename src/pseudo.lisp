@@ -1,8 +1,18 @@
-(in-package :css-selectors.pseudo)
+(in-package :css-selectors)
 (cl-interpol:enable-interpol-syntax)
 (clsql-sys:disable-sql-reader-syntax)
 
-(export '(has is root first-child last-child only-child) :css-selectors.pseudo)
+(export '(not has is root first-child last-child only-child) :css-selectors.pseudo)
+
+(defun pseudo:not (node &optional sub-sel-function)
+  (unless sub-sel-function
+    (error "Has pseudo selector requires a sub-selector argument"))
+  (cl:not (funcall sub-sel-function node)))
+
+(defun pseudo:is (node &optional sub-sel-function)
+  (unless sub-sel-function
+    (error "Has pseudo selector requires a sub-selector argument"))
+  (funcall sub-sel-function node))
 
 (defun pseudo:has (node &optional sub-sel-function)
   (unless sub-sel-function
@@ -13,11 +23,6 @@
 		     (typep n 'dom:element)
 		     (funcall sub-sel-function n))
 		(return-from pseudo:has T)))))
-
-(defun pseudo:is (node &optional sub-sel-function)
-  (unless sub-sel-function
-    (error "Has pseudo selector requires a sub-selector argument"))
-  (funcall sub-sel-function node))
 
 (defun pseudo:root (node &optional sub-sel-function)
   (when sub-sel-function

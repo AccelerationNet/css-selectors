@@ -27,5 +27,6 @@
 
 (defpackage :css-selectors.pseudo
     (:nicknames :pseudo)
+  (:shadow :not)
   (:use :css :iter :cl)
   (:export))
