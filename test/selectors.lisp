@@ -36,6 +36,38 @@
 	       (xhtml:span '(:class "phone")
 		 "352-335-6500x123")))))))))
 
+(defun matcher-basic ()
+  ;; just proving the compiler macros are doing something
+  ;; this takes .001 seconds vs the 1.25 sec of the test below
+  (adwutils:time-and-log-around (css.info "matcher-basic")
+    (node-matches? +footer+ "div,span,label")
+    (node-matches? +footer+ "div#footer")
+    (node-matches? +footer+ "#page #footer")
+    (node-matches? +footer+ "#page #footer.layout.box")
+    (node-matches? +footer+ "#page #footer.box.layout")
+    (node-matches? +footer+ "body div#page> #footer.box.layout")
+    (node-matches? +footer+ "#content + .box.layout")
+    (node-matches? +footer+ "#header ~ .box.layout")
+    (node-matches? +footer+ "[title]")
+    (node-matches? +footer+ "[title|=page]")
+    (node-matches? +footer+ "[title|='page']")
+    (node-matches? +footer+ "#page > [title|=\"page\"]")
+    (node-matches? +footer+ "#footer[class~=\"box\"]")
+    (node-matches? +footer+ ".box[title^=\"this-be\"]")
+    (node-matches? +footer+ "#header ~ [title$=footer-yo]")
+    (node-matches? +footer+ ".box.layout[id=footer]")
+    (node-matches? +footer+ ".box.layout[id=footer]:has( .contact-info )")
+    (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info)")
+    (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info>.name)")
+    (node-matches? +footer+ ".box.layout[id=footer]:is(#footer)")  
+    (node-matches?
+     +footer+
+     ".box.layout[id=footer]:has( .contact-info > .name + .phone )")
+    (node-matches? +footer+ ".box.layout[id=footer]:last-child")
+    (node-matches? +header+ "#header:first-child")
+    (node-matches? (dom:parent-node +header+) ":only-child")
+    (node-matches? (dom:parent-node +header+) "*:only-child")))
+
 (deftest test-matcher-basic (matcher)
   (assert-true (node-matches? +footer+ "div,span,label"))
   (assert-true (node-matches? +footer+ "div#footer"))

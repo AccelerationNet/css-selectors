@@ -84,13 +84,23 @@
 (defun compile-css-node-matcher (inp)  
   (compile nil (%compile-css-node-matcher-lambda inp)))
 
-(defun node-matches? (node inp)
+(defun %node-matches? (node inp)
   (typecase inp
     ((or string list)
        (funcall (compile-css-node-matcher inp) node))
     (function (funcall inp node))))
 
-(defun query (inp &optional (trees buildnode:*document*))
+(defun node-matches? (node inp)
+  (%node-matches? node inp))
+
+(define-compiler-macro node-matches? (node inp &environment e)
+  `(%node-matches?
+    ,node
+    ,(if (constantp inp e)
+	 `(function ,(%compile-css-node-matcher-lambda inp))
+	 inp)))
+
+(defun %query (inp &optional (trees buildnode:*document*))
   (let* ((matcher (compile-css-node-matcher inp)))
     ;; ensure that queries on a list dont return the items in that list
     (iter top
@@ -100,6 +110,15 @@
 		       (typep n 'dom:element)
 		       (funcall matcher n))
 	      (in top (collect n)))))))
+
+(defun query (inp &optional (trees buildnode:*document*))
+  (%query inp trees))
+
+(define-compiler-macro query (inp &optional (trees 'buildnode:*document*) &environment e)
+  `(%query ,(if (constantp inp e)
+		`(function ,(%compile-css-node-matcher-lambda inp))
+		inp)
+	   ,trees))
 
 
 
