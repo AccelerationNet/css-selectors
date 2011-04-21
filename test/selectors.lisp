@@ -97,10 +97,7 @@
   (assert-true (node-matches? +footer+ ".box.layout[id=footer]:last-child"))
   (assert-true (node-matches? +header+ "#header:first-child"))
   (assert-true (node-matches? (dom:parent-node +header+) ":only-child"))
-  (assert-true (node-matches? (dom:parent-node +header+) "*:only-child"))
-
-  
-  )
+  (assert-true (node-matches? (dom:parent-node +header+) "*:only-child")))
 
 (deftest test-query (matcher query)
   (assert-eql 7 (length (query "div" +doc+)))
