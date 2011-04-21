@@ -14,7 +14,9 @@
   (iter (multiple-value-bind (more? symbol accessibility pkg) (sym)
 	  (declare (ignore accessibility))
 	  (when (eql (find-package :css-selectors) pkg)
-	    (ignore-errors (import (list symbol) :css-selectors.test)))
+	    (ignore-errors
+	      (unintern symbol :css-selectors.test)
+	      (import (list symbol) :css-selectors.test)))
 	  (while more?))))
 
 (defmacro deftest (name (&rest args) &body body)
@@ -24,6 +26,10 @@
 		     (list name))))
   `(lisp-unit:define-test ,name
      ,@body))
+
+(defmacro test-w/doc (name (&rest args) &body body)
+  `(deftest ,name (,@args)
+     (buildnode:with-html-document (progn ,@body nil))))
 
 (defun run-tests-with-debugging (&key suites tests)
   (let* ((lisp-unit::*use-debugger* T)
