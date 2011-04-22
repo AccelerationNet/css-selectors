@@ -29,7 +29,7 @@
 
 (asdf:defsystem css-selectors-test
   :description "test for the css-selector library"
-  :depends-on (:css-selectors :lisp-unit)
+  :depends-on (:css-selectors :lisp-unit :buildnode-xhtml)
   :components ((:module :test
 			:serial T
 			:components

@@ -2,6 +2,66 @@
 (cl-interpol:enable-interpol-syntax)
 (clsql-sys:disable-sql-reader-syntax)
 
+;;;; COMMON UTILS COPIED SO AS NOT TO DEPEND ON my utils lib
+
+(defparameter +common-white-space-trimbag+
+  '(#\space #\newline #\return #\tab #\no-break_space))
+
+(defun trim-whitespace (s)
+  (string-trim +common-white-space-trimbag+ s))
+
+(defun trim-and-nullify (s)
+  "trims the whitespace from a string returning nil
+   if trimming produces an empty string or the string 'nil' "
+  (when s
+    (let ((s (trim-whitespace s)))
+      (cond ((zerop (length s)) nil)
+	    ((string-equal s "nil") nil)
+	    (T s)))))
+
+(defun replace-all (string part replacement &key (test #'char=) stream)
+  "Returns a new string in which all the occurences of the part 
+is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.html#manip]"
+  (let ((out (or stream (make-string-output-stream))))
+    (loop with part-length = (length part)
+	  for old-pos = 0 then (+ pos part-length)
+	  for pos = (search part string
+			    :start2 old-pos
+			    :test test)
+	  do (write-string string out
+		   :start old-pos
+		   :end (or pos (length string)))
+	  when pos do (write-string replacement out)
+	    while pos)
+    (unless stream
+      (get-output-stream-string out))))
+
+(defun symbolize-string (str &optional (package *package*))
+  "Turns a string into a happy symbol 
+   ex: ''foo bar_bast'' -> FOO-BAR-BAST
+
+   * can also 'change' package of symbol
+   ex: :foo -> adw::foo
+  "
+  (intern
+    (etypecase str
+      (string (nsubstitute
+	       #\- #\_
+	       (nsubstitute #\- #\space (string-upcase str) :test #'char=)
+	       :test #'char=))
+      (symbol (symbol-name str)))
+    package))
+
+(defun dos-safe-read-line (stream &optional (eof-error-p t) eof-value recursive-p)
+  "readline that can read unix or dos lines"
+  (let ((line (read-line stream eof-error-p eof-value recursive-p)))
+    (if (stringp line)
+	(delete #\return line)
+	line)))
+
+;;;;; END COMMON UTILS
+
+
 (defparameter +option+ "%option\\s")
 (defparameter +option-case-insensitive+ "%option\\scase-insensitive")
 (defparameter +end-of-defs+ "^%%")
@@ -10,7 +70,7 @@
 (defun replace-expansions (defs new-regex)
   (iter (for (k v) in-hashtable defs)
 	(setf new-regex
-	      (adwutils:replace-all
+	      (replace-all
 	       new-regex (format nil "{~A}" k) v )))
   new-regex)
 
@@ -46,10 +106,10 @@
 	 ))))
 
 (defun symbolize (s)
-  (adwutils:symbolize-string s))
+  (symbolize-string s))
 
 (defun keywordize (s)
-  (adwutils:symbolize-string s :keyword))
+  (symbolize-string s :keyword))
 
 (defun all-group-matches-as-string (regex target)
   "Expects a single matching group"
@@ -72,10 +132,10 @@
 		       (defs (make-hash-table :test 'equalp))
 		       done-with-defs?)
   
-  (iter (for line in-file file using #'adwutils:dos-safe-read-line)
-	(setf line (adwutils:trim-and-nullify line))
+  (iter (for line in-file file using #'dos-safe-read-line)
+	(setf line (trim-and-nullify line))
 	(unless line (next-iteration))
-	(for parts = (mapcar #'adwutils:trim-whitespace
+	(for parts = (mapcar #'trim-whitespace
 			     (cl-ppcre:split "\\t+" line :limit 2)))
 	(when (and (not ci?)
 		   (not done-with-defs?)
@@ -132,58 +192,61 @@
   (make-flex-lexer inp "css-selectors/src/css3.lex"))
 
 (defun lex-results (&optional (inp "#foo, .foo #bar, .foo > bar[src~=blech]"))
-  (setf inp (adwutils:trim-whitespace inp))
+  (setf inp (trim-whitespace inp))
   (iter  (with lex = (make-css3-lexer inp))
 	 (for i = (multiple-value-list (funcall lex)))
 	 (while (first i))
 	 (collect i into col) (count i into cnt)
 	 (finally (return (values col cnt)))))
 
-(defun but-quotes (s) (subseq s 1 (- (length s) 1)))
-(defun but-last (s) (subseq s 0 (- (length s) 1)))
-(defun but-first (s) (subseq s 1))
 
-(defun is-special? (s)
-  (when (or (symbolp s) (stringp s))
-    (char-equal #\& (elt (string s) 0))))
 
-(defun arg-list-var-names (args)
-  (iter (for i in args)
-	(unless (is-special? i)
-	  (typecase i
-	    (symbol (collect i))
-	    (list (collect (car i)))))))
+(EVAL-WHEN (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
+  (defun but-quotes (s) (subseq s 1 (- (length s) 1)))
+  (defun but-last (s) (subseq s 0 (- (length s) 1)))
+  (defun but-first (s) (subseq s 1))
 
-(defun uniquify-and-reintern (x &optional (package *package*))
-  (iter (for (sym . rest) on x)
-	(for count = (iter (for s in new)
-			   (when (alexandria:starts-with-subseq
-				  (symbol-name sym) (symbol-name s)
-				  :test #'char-equal)
-			     (count s))))
-	(if (or (find sym rest) (plusp count))
-	    (collect (intern #?"${sym}-${count}" package) into new)
-	    (collect (intern (symbol-name sym) package) into new))
-	(finally (return new))))
+  (defun is-special? (s)
+    (when (or (symbolp s) (stringp s))
+      (char-equal #\& (elt (string s) 0))))
 
-(defmacro lam (args &body body)
-  (let ((arg-names (arg-list-var-names args)))
-    `#'(lambda ,args (declare (ignorable ,@arg-names)) ,@body)))
+  (defun arg-list-var-names (args)
+    (iter (for i in args)
+	  (unless (is-special? i)
+	    (typecase i
+	      (symbol (collect i))
+	      (list (collect (car i)))))))
+  (defun uniquify-and-reintern (x &optional (package *package*))
+    (iter (for (sym . rest) on x)
+	  (for count = (iter (for s in new)
+			     (when (alexandria:starts-with-subseq
+				    (symbol-name sym) (symbol-name s)
+				    :test #'char-equal)
+			       (count s))))
+	  (if (or (find sym rest) (plusp count))
+	      (collect (intern #?"${sym}-${count}" package) into new)
+	      (collect (intern (symbol-name sym) package) into new))
+	  (finally (return new)))))
 
-(defun %rule (args body)
-  `(,@args (lam ,(uniquify-and-reintern args) ,@body)))
+(EVAL-WHEN (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
+  (defmacro lam (args &body body)
+    (let ((arg-names (arg-list-var-names args)))
+      `#'(lambda ,args (declare (ignorable ,@arg-names)) ,@body)))
 
-(defmacro rule (args &body body)
-  `(quote ,(%rule args body)))
+  (defun %rule (args body)
+    `(,@args (lam ,(uniquify-and-reintern args) ,@body)))
 
-(defun %rule-set (name rules)
-  (iter
-    (for (args &rest body) in rules)
-    (if (first-iteration-p) (collect name))
-    (collect (%rule args body))))
+  (defmacro rule (args &body body)
+    `(quote ,(%rule args body)))
 
-(defmacro rule-set (name &body rules)
-  `(quote ,(%rule-set name rules)))
+  (defun %rule-set (name rules)
+    (iter
+      (for (args &rest body) in rules)
+      (if (first-iteration-p) (collect name))
+      (collect (%rule args body))))
+
+  (defmacro rule-set (name &body rules)
+    `(quote ,(%rule-set name rules))))
 
 
 
@@ -273,6 +336,6 @@
    ( )))
 
 (defun parse-results (&optional (inp "#foo, .foo #bar .bast,   .foo > bar[src~=blech],  .foo:hover"))
-  (setf inp (adwutils:trim-whitespace inp))
+  (setf inp (trim-whitespace inp))
   (yacc:parse-with-lexer (make-css3-lexer inp) *css3-selector-parser*))
 

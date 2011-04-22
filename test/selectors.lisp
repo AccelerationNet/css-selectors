@@ -37,7 +37,7 @@
 (defun matcher-basic ()
   ;; just proving the compiler macros are doing something
   ;; this takes .001 seconds vs the 1.25 sec of the test below
-  (adwutils:time-and-log-around (css.info "matcher-basic")
+  (time-and-log-around (css.info "matcher-basic")
     (node-matches? +footer+ "div,span,label")
     (node-matches? +footer+ "div#footer")
     (node-matches? +footer+ "#page #footer")

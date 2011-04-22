@@ -32,4 +32,5 @@
     (:nicknames :pseudo)
   (:shadow :not)
   (:use :css :iter :cl)
-  (:export))
+  (:export #:not #:has #:is #:root #:first-child #:last-child
+	   #:only-child #:nth-child #:nth-last-child))

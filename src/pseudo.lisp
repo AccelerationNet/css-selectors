@@ -2,9 +2,6 @@
 (cl-interpol:enable-interpol-syntax)
 (clsql-sys:disable-sql-reader-syntax)
 
-(export '(not has is root first-child last-child only-child nth-child nth-last-child)
-	:css-selectors.pseudo)
-
 (defun pseudo:not (node &optional sub-sel-function)
   (unless sub-sel-function
     (error "Has pseudo selector requires a sub-selector argument"))
