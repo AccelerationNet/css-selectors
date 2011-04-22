@@ -1,5 +1,5 @@
 (common-lisp:defpackage :css-selectors.test
-  (:use :common-lisp :iterate :lisp-unit :arnesi))
+  (:use :common-lisp :iterate :lisp-unit :css))
 
 (common-lisp:in-package :css-selectors.test)
 
