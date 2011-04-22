@@ -23,9 +23,9 @@
 	       (:file "pseudo")
 	       (:file "compile"))
 	       ))
-    :depends-on (:asdf-system-connections
-		 :iterate :yacc :cl-ppcre
-		 :buildnode :alexandria :cxml))
+    :depends-on (:iterate :yacc :cl-ppcre
+		 :buildnode :alexandria
+		 :cxml :cl-interpol))
 
 (asdf:defsystem css-selectors-test
   :description "test for the css-selector library"
