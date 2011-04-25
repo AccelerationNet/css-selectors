@@ -96,6 +96,7 @@
   (assert-true (node-matches? +footer+ " #footer:nth-last-child(1)"))
   (assert-true (node-matches? +footer+ " #footer:nth-last-child( 1 )"))
   (assert-true (node-matches? +footer+ " #footer:nth-child( +4n-1 )"))
+  (assert-true (node-matches? +header+ " #header:nth-last-child( 4n-1 )"))
   (assert-true (node-matches?
 		+footer+
 		".box.layout[id=footer]:has( .contact-info > .name + .phone )"))
