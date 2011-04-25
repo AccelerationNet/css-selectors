@@ -38,13 +38,23 @@
   ;; css uses one based indexes http://www.w3.org/TR/css3-selectors/#nth-child-pseudo
   (let ((pos (+ 1 (position node (dom:child-nodes
 				  (dom:parent-node node))))))
-    (eql (mod pos mul) add)))
+    (eql (if (and mul (not (zerop mul)))
+	     (mod pos mul)
+	     pos)
+	 (if (plusp add)
+	     add
+	     (+ mul add)))))
 
 (defun pseudo:nth-last-child (node mul add)
   ;; css uses one based indexes http://www.w3.org/TR/css3-selectors/#nth-child-pseudo
   (let* ((kids (dom:child-nodes (dom:parent-node node)))
 	 (pos (- (length kids) (position node kids))))
-    (eql (mod pos mul) add)))
+    (eql (if (and mul (not (zerop mul)))
+	     (mod pos mul)
+	     pos)
+	 (if (plusp add)
+	     add
+	     (+ mul add)))))
 
 (defun pseudo:last-child (node &optional sub-sel-function)
   (when sub-sel-function

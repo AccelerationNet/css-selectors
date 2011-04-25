@@ -330,6 +330,12 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
        (cond ((string-equal ident "even") (list 2 0))
 	     ((string-equal ident "odd") (list 2 1))
 	     (T (error "invalid nth subexpression"))))
+   
+   #.(rule (nth-sign :integer)
+       (list 0 (if (string-equal nth-sign "-")
+		   (* -1 (parse-integer integer))
+		   (parse-integer integer))))
+   
    #.(rule (nth-sign :integer :ident)
        (let (extra-num)
 	 (cond

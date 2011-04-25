@@ -93,6 +93,9 @@
   (assert-true (node-matches? +footer+ " #footer:nth-child(odd)"))
   (assert-false (node-matches? +footer+ " #footer:nth-last-child(even)"))
   (assert-true (node-matches? +footer+ " #footer:nth-last-child(odd)"))
+  (assert-true (node-matches? +footer+ " #footer:nth-last-child(1)"))
+  (assert-true (node-matches? +footer+ " #footer:nth-last-child( 1 )"))
+  (assert-true (node-matches? +footer+ " #footer:nth-child( +4n-1 )"))
   (assert-true (node-matches?
 		+footer+
 		".box.layout[id=footer]:has( .contact-info > .name + .phone )"))
