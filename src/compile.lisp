@@ -73,8 +73,8 @@
 	 (let ((fn (intern (string-upcase name) :pseudo)))
 	   `(,fn %node% ,@subselector))))
     (:nth-pseudo
-       (destructuring-bind (pseudo name (nth-expr mul add)) tree
-	 (declare (ignore pseudo nth-expr))
+       (destructuring-bind (pseudo name mul add) tree
+	 (declare (ignore pseudo ))
 	 (let ((fn (intern (string-upcase name) :pseudo)))
 	   `(,fn %node% ,mul ,add))
 	 ))

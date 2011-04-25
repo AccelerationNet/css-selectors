@@ -47,6 +47,7 @@ nth-(child|last-child|of-type|nth-last-of-type)"("			{return NTH-FUNCTION;}
 
 "!"{w}"important"		{return IMPORTANT_SYM;}
 
+{int}							{return INTEGER;}
 {num}em			{return EMS;}
 {num}ex			{return EXS;}
 {num}px			{return LENGTH;}

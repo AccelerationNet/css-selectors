@@ -35,6 +35,52 @@
   
   )
 
+(deftest nth-x-pseudo (parse)
+  (assert-equal
+   '(:nth-pseudo "nth-child" 2 0)
+   (css::parse-results " :nth-child(even) "))
+  (assert-equal
+   '(:nth-pseudo "nth-child" 2 1)
+   (css::parse-results " :nth-child(odd) "))
+  (assert-equal
+   '(:nth-pseudo "nth-child" 2 0)
+   (css::parse-results " :nth-child(    even  ) "))
+  (assert-equal
+   '(:nth-pseudo "nth-child" 2 1)
+   (css::parse-results " :nth-child(  odd ) "))
+
+  (assert-equal
+   '(:nth-pseudo "nth-last-child" 2 0)
+   (css::parse-results " :nth-last-child(2n) "))
+
+  (assert-equal
+   '(:nth-pseudo "nth-last-child" 2 0)
+   (css::parse-results " :nth-last-child(  2n  ) "))
+
+  (assert-equal
+   '(:nth-pseudo "nth-last-child" 2 1)
+   (css::parse-results " :nth-last-child(  2n+1  ) "))
+
+  (assert-equal
+   '(:nth-pseudo "nth-last-child" -2 0)
+   (css::parse-results " :nth-last-child(  -2n  ) "))
+
+  (assert-equal
+   '(:nth-pseudo "nth-last-child" -1 0)
+   (css::parse-results " :nth-last-child(  -1n  ) "))
+  
+  (assert-equal
+   '(:nth-pseudo "nth-last-child" -2 -1)
+   (css::parse-results " :nth-last-child(  -2n-1  ) "))
+
+  (assert-equal
+   '(:nth-pseudo "nth-last-child" 4 3)
+   (css::parse-results " :nth-last-child(  4n+3  ) "))
+
+  
+  
+  )
+
 (deftest combinator-parse (parse)
   (assert-equal
    '(:or (:class "foo") (:class "bar"))

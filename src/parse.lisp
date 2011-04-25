@@ -252,9 +252,10 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
 
 (yacc:define-parser *css3-selector-parser*
   (:start-symbol selector)
-  (:terminals (:|,| :|*| :|)| :|(| :|>| :|+| :|~| :|:| :|[| :|]| :|=|
+  (:terminals (:|,| :|*| :|)| :|(| :|>| :|+| :|~| :|:| :|[| :|]| :|=| :|-|
 		:S :IDENT :HASH :CLASS :STRING :FUNCTION :NTH-FUNCTION
-		:INCLUDES :DASHMATCH :BEGINS-WITH :ENDS-WITH :SUBSTRING ))
+		:INCLUDES :DASHMATCH :BEGINS-WITH :ENDS-WITH :SUBSTRING
+		:integer))
   (:precedence ((:left :|)| :s :|,| :|+| :|~| )) )
   
   (selector #.(rule (or-sel) or-sel))
@@ -321,19 +322,49 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
    #.(rule (:|:| :FUNCTION spaces selector :|)|)
        (list :pseudo (but-last function) selector))
    #.(rule (:|:| :NTH-FUNCTION spaces nth-expr spaces :|)| )
-       (list :nth-pseudo (but-last nth-function) nth-expr)))
+       `(:nth-pseudo ,(but-last nth-function)
+		     ,@nth-expr)))
 
   (nth-expr
    #.(rule (:ident)
-       `(:nth-expr
-	 ,@(cond ((string-equal ident "even") (list 2 0))
-		 ((string-equal ident "odd") (list 2 1))
-		 (T (error "invalid nth subexpression")))))
-   )
+       (cond ((string-equal ident "even") (list 2 0))
+	     ((string-equal ident "odd") (list 2 1))
+	     (T (error "invalid nth subexpression"))))
+   #.(rule (nth-sign :integer :ident)
+       (let (extra-num)
+	 (cond
+	   ((string-equal "n" ident) T)
+	   ;; this is because our lexer will recogince n-1 as a valid ident
+	   ;; but n+1 will hit the rule below
+	   ((alexandria:starts-with-subseq "n" ident)
+	    (setf extra-num (parse-integer (subseq ident 1))))
+	   (T (error "invalid nth subexpression in (what is ~A)" ident)))
+	 (list (or (if (string-equal nth-sign "-")
+		       (* -1 (parse-integer integer))
+		       (parse-integer integer))
+		   0)
+	       (or extra-num 0))))
+   #.(rule (nth-sign :integer :ident nth-sign :integer)
+       (when (and integer-1 (null nth-sign-1))
+	 (error "invalid nth subexpression 2n+1 style requires a sign before the second number"))
+       (list (or (if (string-equal nth-sign-0 "-")
+		     (* -1 (parse-integer integer-0))
+		     (parse-integer integer-0))
+		 0)
+	     (or (if (string-equal nth-sign-1 "-")
+		     (* -1 (parse-integer integer-1))
+		     (parse-integer integer-1))
+		 0))
+       ))
   
-  (spaces
-   (:S )
-   ( )))
+   (nth-sign
+    #.(rule (:|+|) :|+|)
+    #.(rule (:|-|) :|-|)
+    #.(rule () ()))
+  
+   (spaces
+    (:S )
+    ( )))
 
 (defun parse-results (&optional (inp "#foo, .foo #bar .bast,   .foo > bar[src~=blech],  .foo:hover"))
   (setf inp (trim-whitespace inp))
