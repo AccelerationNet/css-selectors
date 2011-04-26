@@ -187,7 +187,10 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
 	  )))))
 
 (defun make-css3-lexer (inp)
-  (make-flex-lexer inp "css-selectors/src/css3.lex"))
+  (make-flex-lexer
+   inp
+   (asdf:system-relative-pathname
+    :css-selectors #p"src/css3.lex")))
 
 (defun lex-results (&optional (inp "#foo, .foo #bar, .foo > bar[src~=blech]"))
   (setf inp (trim-whitespace inp))
