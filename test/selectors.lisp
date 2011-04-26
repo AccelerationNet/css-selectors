@@ -1,4 +1,4 @@
-(common-lisp:in-package :css-selectors.test)
+(common-lisp:in-package :css-selectors-test)
 
 (defparameter +header+ nil)
 (defparameter +footer+ nil)

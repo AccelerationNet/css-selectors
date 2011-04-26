@@ -1,7 +1,7 @@
-(common-lisp:defpackage :css-selectors.test
+(common-lisp:defpackage :css-selectors-test
   (:use :common-lisp :iterate :lisp-unit :css))
 
-(common-lisp:in-package :css-selectors.test)
+(common-lisp:in-package :css-selectors-test)
 
 
 (defun log-time (&optional (time (get-universal-time)) stream)
@@ -44,8 +44,8 @@
 	  (declare (ignore accessibility))
 	  (when (eql (find-package :css-selectors) pkg)
 	    (ignore-errors
-	      (unintern symbol :css-selectors.test)
-	      (import (list symbol) :css-selectors.test)))
+	      (unintern symbol :css-selectors-test)
+	      (import (list symbol) :css-selectors-test)))
 	  (while more?))))
 
 (defmacro deftest (name (&rest args) &body body)
@@ -61,14 +61,20 @@
   `(deftest ,name (,@args)
      (buildnode:with-html-document (progn ,@body nil))))
 
-(defun run-tests-with-debugging (&key suites tests)
+(defun run-tests (&key suites tests (use-debugger T))
   (time-and-log-around (css.info "running all tests")
-    (let* ((lisp-unit::*use-debugger* T)
+    (let* ((*package* (find-package :css-selectors-test))
+	   (lisp-unit::*use-debugger* use-debugger)
 	   (tests (append (buildnode::ensure-list tests)
 			  (iter (for suite in (buildnode::ensure-list suites))
 				(appending (get suite :tests)))))
 	   (out (with-output-to-string (lisp-unit::*lisp-unit-stream*)
 		  (lisp-unit::run-test-thunks
 		   (lisp-unit::get-test-thunks
-		    (if (null tests) (get-tests *package*) tests))))))
-      (css.info "~% ** TEST RESULTS ** ~%-----------~%~A~%------------~%" out))))
+		    (if (null tests)
+			(get-tests *package*)
+			tests))))))
+    
+      (format *standard-output*
+	      "~&~% ** TEST RESULTS: CSS-Selectors ** ~%-----------~%~A~%------ END TEST RESULTS ------~%"
+	      out))))
