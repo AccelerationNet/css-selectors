@@ -1,6 +1,4 @@
 (in-package :css-selectors)
-(cl-interpol:enable-interpol-syntax)
-(clsql-sys:disable-sql-reader-syntax)
 
 (defun pseudo:not (node &optional sub-sel-function)
   (unless sub-sel-function

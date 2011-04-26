@@ -1,6 +1,4 @@
 (in-package :css)
-(cl-interpol:enable-interpol-syntax)
-(clsql-sys:disable-sql-reader-syntax)
 
 ;;;; COMMON UTILS COPIED SO AS NOT TO DEPEND ON my utils lib
 
@@ -224,7 +222,7 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
 				    :test #'char-equal)
 			       (count s))))
 	  (if (or (find sym rest) (plusp count))
-	      (collect (intern #?"${sym}-${count}" package) into new)
+	      (collect (intern (format nil "~a-~d" sym count) package) into new)
 	      (collect (intern (symbol-name sym) package) into new))
 	  (finally (return new)))))
 

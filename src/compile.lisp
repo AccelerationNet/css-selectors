@@ -1,6 +1,4 @@
 (in-package :css)
-(cl-interpol:enable-interpol-syntax)
-(clsql-sys:disable-sql-reader-syntax)
 
 (defun attrib-includes? (node attrib value)
   (member value
