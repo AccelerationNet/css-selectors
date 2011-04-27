@@ -1,5 +1,6 @@
 (common-lisp:defpackage :css-selectors-test
-  (:use :common-lisp :iterate :lisp-unit :css))
+  (:use :common-lisp :iterate :lisp-unit :css)
+  (:shadow :run-tests))
 
 (common-lisp:in-package :css-selectors-test)
 
