@@ -12,10 +12,10 @@
     (format stream "~2,'0d:~2,'0d:~2,'0d "  h min s)))
 
 (defun css.info (message &rest args)
-  (format lisp-unit::*lisp-unit-stream* "~&")
-  (log-time (get-universal-time) lisp-unit::*lisp-unit-stream*)
-  (apply #'format lisp-unit::*lisp-unit-stream* message args)
-  (format lisp-unit::*lisp-unit-stream* "~%"))
+  (format *standard-output* "~&")
+  (log-time (get-universal-time) *standard-output*)
+  (apply #'format *standard-output* message args)
+  (format *standard-output* "~%"))
 
 (EVAL-WHEN (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
   (defmacro log-around ((log-name message &rest args) &body body)
@@ -69,7 +69,7 @@
 	   (tests (append (buildnode::ensure-list tests)
 			  (iter (for suite in (buildnode::ensure-list suites))
 				(appending (get suite :tests)))))
-	   (out (with-output-to-string (lisp-unit::*lisp-unit-stream*)
+	   (out (with-output-to-string (*standard-output*)
 		  (lisp-unit::run-test-thunks
 		   (lisp-unit::get-test-thunks
 		    (if (null tests)
