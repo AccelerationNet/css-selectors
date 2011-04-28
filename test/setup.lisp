@@ -63,19 +63,20 @@
      (buildnode:with-html-document (progn ,@body nil))))
 
 (defun run-tests (&key suites tests (use-debugger T))
-  (time-and-log-around (css.info "running all tests")
+  
     (let* ((*package* (find-package :css-selectors-test))
 	   (lisp-unit::*use-debugger* use-debugger)
 	   (tests (append (buildnode::ensure-list tests)
 			  (iter (for suite in (buildnode::ensure-list suites))
 				(appending (get suite :tests)))))
-	   (out (with-output-to-string (*standard-output*)
-		  (lisp-unit::run-test-thunks
-		   (lisp-unit::get-test-thunks
-		    (if (null tests)
-			(get-tests *package*)
-			tests))))))
+	   (out (time-and-log-around (css.info "running all tests")
+		  (with-output-to-string (*standard-output*)
+		    (lisp-unit::run-test-thunks
+		     (lisp-unit::get-test-thunks
+		      (if (null tests)
+			  (get-tests *package*)
+			  tests)))))))
     
       (format *standard-output*
 	      "~&~% ** TEST RESULTS: CSS-Selectors ** ~%-----------~%~A~%------ END TEST RESULTS ------~%"
-	      out))))
+	      out)))

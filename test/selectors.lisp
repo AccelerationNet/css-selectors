@@ -34,76 +34,96 @@
 	       (xhtml:span '(:class "name") "Acceleration.net")
 	       (xhtml:span '(:class "phone") "352-335-6500x123")))))))))
 
-(defun matcher-basic ()
-  ;; just proving the compiler macros are doing something
-  ;; this takes .001 seconds vs the 1.25 sec of the test below
-  (time-and-log-around (css.info "matcher-basic")
-    (node-matches? +footer+ "div,span,label")
-    (node-matches? +footer+ "div#footer")
-    (node-matches? +footer+ "#page #footer")
-    (node-matches? +footer+ "#page #footer.layout.box")
-    (node-matches? +footer+ "#page #footer.box.layout")
-    (node-matches? +footer+ "body div#page> #footer.box.layout")
-    (node-matches? +footer+ "#content + .box.layout")
-    (node-matches? +footer+ "#header ~ .box.layout")
-    (node-matches? +footer+ "[title]")
-    (node-matches? +footer+ "[title|=page]")
-    (node-matches? +footer+ "[title|='page']")
-    (node-matches? +footer+ "#page > [title|=\"page\"]")
-    (node-matches? +footer+ "#footer[class~=\"box\"]")
-    (node-matches? +footer+ ".box[title^=\"this-be\"]")
-    (node-matches? +footer+ "#header ~ [title$=footer-yo]")
-    (node-matches? +footer+ ".box.layout[id=footer]")
-    (node-matches? +footer+ ".box.layout[id=footer]:has( .contact-info )")
-    (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info)")
-    (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info>.name)")
-    (node-matches? +footer+ ".box.layout[id=footer]:is(#footer)")
-    (node-matches?
-     +footer+
-     ".box.layout[id=footer]:has( .contact-info > .name + .phone )")
-    (node-matches? +footer+ ".box.layout[id=footer]:last-child")
-    (node-matches? +header+ "#header:first-child")
-    (node-matches? (dom:parent-node +header+) ":only-child")
-    (node-matches? (dom:parent-node +header+) "*:only-child")))
+(defparameter +nodes-and-matching-selectors+
+  `((,+footer+ "div,span,label"
+	       "div#footer"
+	       "#page #footer"
+	       "#page #footer.layout.box"
+	       "#page #footer.box.layout"
+	       "body div#page> #footer.box.layout"
+	       "#content + .box.layout"
+	       "#header ~ .box.layout"
+	       "[title]"
+	       "[title|=page]"
+	       "[title|='page']"
+	       "#page > [title|=\"page\"]"
+	       "#footer[class~=\"box\"]"
+	       ".box[title^=\"this-be\"]"
+	       "#header ~ [title$=footer-yo]"
+	       ".box.layout[id=footer]"
+	       ".box.layout[id=footer]:has( .contact-info )"
+	       ".box.layout[id=footer]:has(.contact-info)"
+	       ".box.layout[id=footer]:has(.contact-info>.name)"
+	       ".box.layout[id=footer]:is(#footer)"
+	       ".box.layout[id=footer]:not(#header)"
+	       ".box.layout[id=footer]:not( .contact-info )"
+	       " #footer:not( :nth-child(even) )"
+	       " #footer:nth-child(odd)"
+	       " #footer:not( :nth-last-child(even) )"
+	       " #footer:nth-last-child(odd)"
+	       " #footer:nth-last-child(1)"
+	       " #footer:nth-last-child( 1 )"
+	       " #footer:nth-child( +4n-1 )"
+	       ".box.layout[id=footer]:has( .contact-info > .name + .phone )"
+	       ".box.layout[id=footer]:last-child")
+    (,+header+ " #header:nth-last-child( 4n-1 )"
+	       "#header:first-child")
+    (,(dom:parent-node +header+)
+      ":only-child"
+      "*:only-child")))
 
-(deftest test-matcher-basic (matcher)
-  (assert-true (node-matches? +footer+ "div,span,label"))
-  (assert-true (node-matches? +footer+ "div#footer"))
-  (assert-true (node-matches? +footer+ "#page #footer"))
-  (assert-true (node-matches? +footer+ "#page #footer.layout.box"))
-  (assert-true (node-matches? +footer+ "#page #footer.box.layout"))
-  (assert-true (node-matches? +footer+ "body div#page> #footer.box.layout"))
-  (assert-true (node-matches? +footer+ "#content + .box.layout"))
-  (assert-true (node-matches? +footer+ "#header ~ .box.layout"))
-  (assert-true (node-matches? +footer+ "[title]"))
-  (assert-true (node-matches? +footer+ "[title|=page]"))
-  (assert-true (node-matches? +footer+ "[title|='page']"))
-  (assert-true (node-matches? +footer+ "#page > [title|=\"page\"]"))
-  (assert-true (node-matches? +footer+ "#footer[class~=\"box\"]"))
-  (assert-true (node-matches? +footer+ ".box[title^=\"this-be\"]"))
-  (assert-true (node-matches? +footer+ "#header ~ [title$=footer-yo]"))
-  (assert-true (node-matches? +footer+ ".box.layout[id=footer]"))
-  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:has( .contact-info )"))
-  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info)"))
-  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:has(.contact-info>.name)"))
-  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:is(#footer)"))
-  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:not(#header)"))
-  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:not( .contact-info )"))
-  (assert-false (node-matches? +footer+ " #footer:nth-child(even)"))
-  (assert-true (node-matches? +footer+ " #footer:nth-child(odd)"))
-  (assert-false (node-matches? +footer+ " #footer:nth-last-child(even)"))
-  (assert-true (node-matches? +footer+ " #footer:nth-last-child(odd)"))
-  (assert-true (node-matches? +footer+ " #footer:nth-last-child(1)"))
-  (assert-true (node-matches? +footer+ " #footer:nth-last-child( 1 )"))
-  (assert-true (node-matches? +footer+ " #footer:nth-child( +4n-1 )"))
-  (assert-true (node-matches? +header+ " #header:nth-last-child( 4n-1 )"))
-  (assert-true (node-matches?
-		+footer+
-		".box.layout[id=footer]:has( .contact-info > .name + .phone )"))
-  (assert-true (node-matches? +footer+ ".box.layout[id=footer]:last-child"))
-  (assert-true (node-matches? +header+ "#header:first-child"))
-  (assert-true (node-matches? (dom:parent-node +header+) ":only-child"))
-  (assert-true (node-matches? (dom:parent-node +header+) "*:only-child")))
+(defparameter +nodes-and-matching-selectors-compiled1+
+  (iter (for (n . selectors) in +nodes-and-matching-selectors+)
+	(iter (for selector in selectors)
+	      (format T "About to compile ~A with ~A~%" n selector)
+	      (collect (list n (%compile-css-node-matcher-lambda selector))))))
+
+(defparameter +nodes-and-matching-selectors-compiled2+
+  (iter (for (n . selectors) in +nodes-and-matching-selectors+)
+	(iter (for selector in selectors)
+	      (format T "About to compile ~A with ~A~%" n selector)
+	      (collect (list n (make-node-matcher selector))))))
+
+(deftest test-basic-compiler1 (compiler)  
+  (iter (for i from 0 to 100)
+	(iter (for (n . selectors) in +nodes-and-matching-selectors+)
+	      (iter (for selector in selectors)
+		    (assert-true (%compile-css-node-matcher-lambda selector)
+				 n selector)))))
+
+(deftest test-basic-compiler2 (compiler)  
+  (iter (for i from 0 to 100)
+	(iter (for (n . selectors) in +nodes-and-matching-selectors+)
+	      (iter (for selector in selectors)
+		    (format T "About to compile ~A with ~A~%" n selector)
+		    (assert-true (make-node-matcher selector)
+				 n selector)))))
+
+(deftest test-basic-compiler-execution1 (compiler)
+  (iter (for i from 0 to 10000)
+	(iter (for (n  selector) in +nodes-and-matching-selectors-compiled1+)
+	      (assert-true (%node-matches? n selector)
+			   n selector))))
+
+(deftest test-basic-compiler-execution2 (compiler)
+  (iter (for i from 0 to 10000)
+	(iter (for (n  selector) in +nodes-and-matching-selectors-compiled2+)
+	      (assert-true (%node-matches? n selector)
+			   n selector))))
+
+(deftest test-matcher-basic-compiler1 (matcher)    
+  (iter (for (n . selectors) in +nodes-and-matching-selectors+)
+	(iter (for selector in selectors)
+	      (assert-true (%node-matches? n (%compile-css-node-matcher-lambda selector))
+			   n selector))))
+
+(deftest test-matcher-basic-compiler2 (matcher)  
+  (iter (for (n . selectors) in +nodes-and-matching-selectors+)
+	(iter (for selector in selectors)
+	      (format T "~%About to match ~A with ~A~%-----------------~%"
+		      n selector)
+	      (assert-true (%node-matches? n (make-node-matcher selector) )
+			   n selector))))
 
 (deftest test-query (matcher query)
   (assert-eql 7 (length (query "div" +doc+)))
