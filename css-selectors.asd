@@ -21,7 +21,8 @@
 	      ((:file "packages")
 	       (:file "parse")
 	       (:file "pseudo")
-	       (:file "compile"))
+	       (:file "compile")
+	       (:file "compile2"))
 	       ))
     :depends-on (:iterate :yacc :cl-ppcre
 		 :buildnode :alexandria

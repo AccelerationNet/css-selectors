@@ -66,8 +66,7 @@
 	 (when subselector
 	   (setf subselector
 		 (list
-		  `(function ,(%compile-css-node-matcher-lambda
-			       (transform-css-parse-tree subselector))))))
+		  `(function ,(%compile-css-node-matcher-lambda subselector)))))
 	 (let ((fn (intern (string-upcase name) :pseudo)))
 	   `(,fn %node% ,@subselector))))
     (:nth-pseudo
@@ -79,9 +78,12 @@
     ))
 
 (defun %lisp-parse-results (inp)
-  (typecase inp
-    (string (transform-css-parse-tree (parse-results inp)))
-    (list inp)))
+  "inp should be either css-selector parse results or a string to be parsed
+   this will be transformed into tree of lisp code"
+  (transform-css-parse-tree
+   (typecase inp
+     (string (parse-results inp))
+     (list inp))))
 
 (defun %compile-css-node-matcher-lambda (inp)
   `(lambda (%node%) ,(%lisp-parse-results inp)))
