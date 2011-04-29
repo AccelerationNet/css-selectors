@@ -14,17 +14,17 @@
       (iter (for matcher in matchers)
 	    (always (funcall matcher %node%))))))
 
-(defun make-class-matcher ( class   )
+(defun make-class-matcher ( class )
   (lambda (%node%)
     "class-matcher"
     (attrib-includes? %node% "class" class)))
 
-(defun make-hash-matcher ( id   )
+(defun make-hash-matcher ( id )
   (lambda (%node%)
     "hash-matcher"
     (string-equal (buildnode:get-attribute %node% :id) id)))
 
-(defun make-elt-matcher ( tag   )
+(defun make-elt-matcher ( tag )
   (lambda (%node%)
     "elt-matcher"
     (string-equal (dom:tag-name %node%) tag)))
@@ -50,7 +50,7 @@
 			  :test #'string-equal ))
       (:exists (buildnode:get-attribute %node% attrib)))))
 
-(defun make-immediate-child-matcher (parent-matcher child-matcher  )
+(defun make-immediate-child-matcher (parent-matcher child-matcher)
   (lambda (%node%)
     (and (funcall child-matcher %node%)
 	 (dom:parent-node %node%)
