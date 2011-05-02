@@ -80,45 +80,29 @@
   (iter (for (n selector) in +nodes-and-matching-selectors+)
 	(collect (list n (parse-results selector)))))
 
-(defparameter +nodes-and-matching-selectors-compiled1+
+(defparameter +nodes-and-matching-selectors-compiled+
   (iter (for (n form) in +nodes-and-matching-selectors-parsed+)	
 	(collect (list n (compile-css-node-matcher form)))))
 
-(defparameter +nodes-and-matching-selectors-compiled2+
-  (iter (for (n form) in +nodes-and-matching-selectors-parsed+)	
-	(collect (list n (make-node-matcher form)))))
-
 (deftest test-parser-speed (parser compiler speed)
-  (iter (for i from 0 to 100)
+  (iter (for i from 0 to 10)
 	(iter (for (n selector) in +nodes-and-matching-selectors+)
 	      (assert-true (list n (parse-results selector))))))
 
-(deftest test-compiler1-speed (compiler compilation-speed speed)
+(deftest test-compiler-speed (compiler compilation-speed speed)
   (iter (for i from 0 to 100)
 	(iter (for (n selector) in +nodes-and-matching-selectors-parsed+)
 	      (assert-true (compile-css-node-matcher selector)
 			   n selector))))
 
-(deftest test-compiler2-speed (compiler compilation-speed speed)  
-  (iter (for i from 0 to 100)
-	(iter (for (n selector) in +nodes-and-matching-selectors-parsed+)
-	      (assert-true (make-node-matcher selector)
-				 n selector))))
-
-(deftest test-compiler1-execution-speed (compiler execution-speed speed)
+(deftest test-compiler-execution-speed (compiler execution-speed speed)
   (iter (for i from 0 to 1000)
-	(iter (for (n  selector) in +nodes-and-matching-selectors-compiled1+)
-	      (assert-true (%node-matches? n selector)
-			   n selector))))
-
-(deftest test-compiler2-execution-speed (compiler execution-speed speed)
-  (iter (for i from 0 to 1000)
-	(iter (for (n  selector) in +nodes-and-matching-selectors-compiled2+)
+	(iter (for (n  selector) in +nodes-and-matching-selectors-compiled+)
 	      (assert-true (%node-matches? n selector)
 			   n selector))))
 
 (deftest test-matcher (matcher)
-  (iter (for (n  selector) in +nodes-and-matching-selectors-compiled2+)
+  (iter (for (n  selector) in +nodes-and-matching-selectors-compiled+)
 	(assert-true (node-matches? n selector)
 		     n selector)))
 
