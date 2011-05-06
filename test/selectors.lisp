@@ -112,3 +112,6 @@
   (assert-eql +header+ (first (query "#page div#header" +doc+)))
   (assert-false (first (query "div#page" (query "div#page" +doc+)))))
 
+(defun test-css-compilation-result-compilation ()
+  (with-document (css:query "html")))
+

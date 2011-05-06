@@ -159,7 +159,7 @@
   `(%node-matches?
     ,node
     ,(if (constantp inp e)
-	 (compile-css-node-matcher inp)
+	 `(load-time-value (compile-css-node-matcher ,inp))
 	 inp)))
 
 (defun %query (inp &optional (trees buildnode:*document*))
@@ -177,10 +177,11 @@
   (%query inp trees))
 
 (define-compiler-macro query (inp &optional (trees 'buildnode:*document*) &environment e)
-  `(%query ,(if (constantp inp e)
-		(compile-css-node-matcher inp)
-		inp)
-	   ,trees))
+  `(%query 
+    ,(if (constantp inp e)
+	 `(load-time-value (compile-css-node-matcher ,inp))
+	 inp)
+    ,trees))
 
 
 
