@@ -52,7 +52,7 @@
 (defmacro deftest (name (&rest args) &body body)
   (iter (for tag in args)
 	(setf (get tag :tests)
-	      (union (buildnode::ensure-list (get tag :tests))
+	      (union (alexandria:ensure-list (get tag :tests))
 		     (list name))))
   `(lisp-unit:define-test ,name
      (time-and-log-around (css.info "Running Test ~A" ',name)
@@ -66,8 +66,8 @@
   
     (let* ((*package* (find-package :css-selectors-test))
 	   (lisp-unit::*use-debugger* use-debugger)
-	   (tests (append (buildnode::ensure-list tests)
-			  (iter (for suite in (buildnode::ensure-list suites))
+	   (tests (append (alexandria:ensure-list tests)
+			  (iter (for suite in (alexandria:ensure-list suites))
 				(appending (get suite :tests)))))
 	   (out (time-and-log-around (css.info "running all tests")
 		  (with-output-to-string (*standard-output*)
