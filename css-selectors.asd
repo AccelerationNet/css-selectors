@@ -4,10 +4,6 @@
       (:use :common-lisp :asdf))))
 
 (in-package :net.acceleration.css-selectors.system)
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (when (find-system 'asdf-system-connections nil)
-    (asdf:operate 'asdf:load-op 'asdf-system-connections)))
  
 (defsystem :css-selectors
     :description "An implementation of css selectors"
