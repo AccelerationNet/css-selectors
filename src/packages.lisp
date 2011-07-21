@@ -21,7 +21,7 @@
 
 (defpackage :css-selectors
     (:nicknames :css)
-  (:use :cl :iter)
+  (:use :cl :iterate)
   (:export :query
 	   :node-matches?
 	   :parse-results
