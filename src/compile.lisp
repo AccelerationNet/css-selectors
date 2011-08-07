@@ -1,9 +1,10 @@
 (in-package :css)
 
 (defun attrib-includes? (node attrib value)
-  (member value
-	  (cl-ppcre:split "\\s+" (buildnode:get-attribute node attrib))
-	  :test #'string-equal))
+  (when (not (dom:document-p node))
+    (member value
+	    (cl-ppcre:split "\\s+" (buildnode:get-attribute node attrib))
+	    :test #'string-equal)))
 
 (defun make-or-matcher (forms)
   (let ((matchers (mapcar (lambda (f) (make-matcher-aux f)) forms)))
@@ -32,7 +33,8 @@
 (defun make-elt-matcher ( tag )
   (lambda (%node%)
     "elt-matcher"
-    (string-equal (dom:tag-name %node%) tag)))
+    (when (not (dom:document-p %node%))
+      (string-equal (dom:tag-name %node%) tag))))
 
 (defun make-attrib-matcher ( attrib match-type match-to   )
   "attrib-matcher"
