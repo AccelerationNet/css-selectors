@@ -115,3 +115,6 @@
 (defun test-css-compilation-result-compilation ()
   (with-document (css:query "html")))
 
+(deftest test-parent-overflow (compiler)
+ (css:query "q > html" +doc+))
+

@@ -55,11 +55,17 @@
 			  :test #'string-equal ))
       (:exists (buildnode:get-attribute %node% attrib)))))
 
+(defun parent-element (n)
+  "gets the parent dom:element (rather than ever returning the document node)"
+  (let ((p (dom:parent-node n)))
+    (when (and p (dom:element-p p))
+      p)))
+
 (defun make-immediate-child-matcher (parent-matcher child-matcher)
   (lambda (%node%)
     (and (funcall child-matcher %node%)
-	 (dom:parent-node %node%)
-	 (funcall parent-matcher (dom:parent-node %node%)))))
+	 (parent-element %node%)
+	 (funcall parent-matcher (parent-element %node%)))))
 
 (defun make-child-matcher (parent-matcher child-matcher  )
   (lambda (%node%)
