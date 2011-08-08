@@ -166,10 +166,14 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
 	))
 
 
+(defparameter +css3-lex-productions+
+  (read-flex-file
+   (asdf:system-relative-pathname
+    :css-selectors #p"src/css3.lex")))
 
-(defun make-flex-lexer (inp file)
+(defun make-css3-lexer (inp)
   (let ((start 0) )
-    (multiple-value-bind (productions ci?) (read-flex-file file)
+    (multiple-value-bind (productions ci?) +css3-lex-productions+
       (declare (ignore ci?))
       (lambda ()
 	(iter
@@ -183,14 +187,7 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
 		(if rtn
 		    (return (values rtn match))
 		    (return (values (keywordize match) nil)))))
-	    )
-	  )))))
-
-(defun make-css3-lexer (inp)
-  (make-flex-lexer
-   inp
-   (asdf:system-relative-pathname
-    :css-selectors #p"src/css3.lex")))
+	    ))))))
 
 (defun lex-results (&optional (inp "#foo, .foo #bar, .foo > bar[src~=blech]"))
   (setf inp (trim-whitespace inp))
