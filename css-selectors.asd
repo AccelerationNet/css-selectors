@@ -21,7 +21,7 @@
 	       ))
     :depends-on (:iterate :yacc :cl-ppcre
 		 :buildnode :alexandria
-		 :cxml :cl-interpol))
+		 :cxml :cl-interpol :symbol-munger))
 
 (asdf:defsystem css-selectors-test
   :description "test for the css-selector library"

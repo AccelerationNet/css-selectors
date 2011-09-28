@@ -34,22 +34,6 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
     (unless stream
       (get-output-stream-string out))))
 
-(defun symbolize-string (str &optional (package *package*))
-  "Turns a string into a happy symbol 
-   ex: ''foo bar_bast'' -> FOO-BAR-BAST
-
-   * can also 'change' package of symbol
-   ex: :foo -> adw::foo
-  "
-  (intern
-    (etypecase str
-      (string (nsubstitute
-	       #\- #\_
-	       (nsubstitute #\- #\space (string-upcase str) :test #'char=)
-	       :test #'char=))
-      (symbol (symbol-name str)))
-    package))
-
 (defun dos-safe-read-line (stream &optional (eof-error-p t) eof-value recursive-p)
   "readline that can read unix or dos lines"
   (let ((line (read-line stream eof-error-p eof-value recursive-p)))
@@ -104,10 +88,10 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
 	 ))))
 
 (defun symbolize (s)
-  (symbolize-string s))
+  (symbol-munger:english->lisp-symbol s))
 
 (defun keywordize (s)
-  (symbolize-string s :keyword))
+  (symbol-munger:english->keyword s))
 
 (defun all-group-matches-as-string (regex target)
   "Expects a single matching group"
