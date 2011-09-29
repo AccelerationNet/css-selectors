@@ -3,9 +3,9 @@
 (deftest basic-parse (parse)
   (assert-equal '(:class "foo")
    (css::parse-results " .foo "))
-  
+
   (assert-equal
-   '(:or 
+   '(:or
      (:class "foo")
      (:hash "bar"))
    (css::parse-results " .foo , #bar "))
@@ -13,12 +13,12 @@
   (assert-equal
    '(:immediate-child (:class "foo") (:hash "bar"))
    (css::parse-results " .foo > #bar "))
-  
+
   (assert-equal
    ' (:immediate-child (:class "foo")
 		       (:hash "bar"))
    (css::parse-results " .foo>#bar "))
-  
+
   (assert-equal
    '(:child :everything (:child (:class "foo") (:child (:element "bar") (:hash "bas"))))
    (css::parse-results " * .foo bar #bas "))
@@ -32,7 +32,7 @@
    '(:child (:and :everything (:class "foo"))
      (:and (:element "bar") (:hash "bas")))
    (css::parse-results " *.foo bar#bas "))
-  
+
   )
 
 (deftest nth-x-pseudo (parse)
@@ -68,7 +68,7 @@
   (assert-equal
    '(:nth-pseudo "nth-last-child" -1 0)
    (css::parse-results " :nth-last-child(  -1n  ) "))
-  
+
   (assert-equal
    '(:nth-pseudo "nth-last-child" -2 -1)
    (css::parse-results " :nth-last-child(  -2n-1  ) "))
@@ -77,8 +77,8 @@
    '(:nth-pseudo "nth-last-child" 4 3)
    (css::parse-results " :nth-last-child(  4n+3  ) "))
 
-  
-  
+
+
   )
 
 (deftest combinator-parse (parse)
@@ -88,7 +88,7 @@
   (assert-equal
    '(:or (:class "foo") (:class "bar"))
    (css::parse-results ".foo,.bar"))
-  
+
   (assert-equal
    '(:or
      (:class "foo")
@@ -122,7 +122,7 @@
 	(:element "bast")))
       (:and (:element "c") (:hash "foo"))))
    (css::parse-results " a.foo , b.bar > #bar + bast, c#foo"))
-  
+
   )
 
 (deftest attrib-parse (parse)
