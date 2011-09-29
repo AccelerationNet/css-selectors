@@ -22,25 +22,34 @@
     (recex:regex-recursive-groups regex inp)))
 
 (defun side-by-side-parse (inp)
-  (list (second (multiple-value-list (recex-parse inp)))
+  (list (recex:treeify-regex-results (recex-parse inp))
         (parse-results inp)))
 
-(defun timed-side-by-side-parse (inp &optional (iterations 1)
-                                     &aux r1 r2)
-  (time (iter (for i from 0 to iterations)
-          (setf r1 (recex:treeify-regex-results (recex-parse inp)))))
-  (time (iter (for i from 0 to iterations)
-          (setf r2 (parse-results inp))))
-  (format t "~&~S~&~S~&" r1 r2))
+(defun timed-side-by-side-parses (inps &optional (iterations 10))
+  (format t "~&~S~&"
+          (time
+           (iter (for inp in inps)
+             (collect
+                 (iter
+                   (with r)
+                   (for i from 0 to iterations)
+                   (setf r (recex-parse inp))
+                   (finally (return (recex:treeify-regex-results r))))))))
+  (format t "~&~S~&"
+          (time
+           (iter (for inp in inps)
+             (collect
+                 (iter
+                   (with r)
+                   (for i from 0 to iterations)
+                   (setf r (parse-results inp))
+                   (finally (return r))))))))
 
 
 (defun run-some-tests ()
-  (timed-side-by-side-parse ".foo" )
-  (timed-side-by-side-parse "#bar" )
-  (timed-side-by-side-parse ":bast" )
-  (timed-side-by-side-parse "div[onclick]" )
-  (timed-side-by-side-parse "div[onclick=foo]" )
-  (timed-side-by-side-parse
-   ":nth-last-child(  2n+1  ), foo.bar>bast:blech( .foo )" ))
+  (timed-side-by-side-parses
+   (list ".foo" "#bar" ":bast" "div[onclick]"
+         "div[onclick=foo]"
+         ":nth-last-child(  2n+1  ), foo.bar>bast:blech( .foo )" )))
 
 
