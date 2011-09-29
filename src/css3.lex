@@ -30,7 +30,7 @@ range		\?{1,6}|{h}(\?{0,5}|{h}(\?{0,4}|{h}(\?{0,3}|{h}(\?{0,2}|{h}(\??|{h})))))
 "^="			{return BEGINS_WITH;}
 "*="			{return SUBSTRING;}
 
-nth-(child|last-child|of-type|nth-last-of-type)"("			{return NTH-FUNCTION;}
+nth-(child|last-child|of-type|last-of-type)"("			{return NTH-FUNCTION;}
 {ident}"("		{return FUNCTION;}
 {string}		{return STRING;}
 {ident}			{return IDENT;}
