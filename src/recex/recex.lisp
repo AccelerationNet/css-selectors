@@ -25,7 +25,7 @@
   (list (recex:treeify-regex-results (recex-parse inp))
         (parse-results inp)))
 
-(defun timed-side-by-side-parses (inps &optional (iterations 10))
+(defun timed-side-by-side-parses (inps &optional (iterations 100))
   (format t "~&~S~&"
           (time
            (iter (for inp in inps)
@@ -50,6 +50,7 @@
   (timed-side-by-side-parses
    (list ".foo" "#bar" ":bast" "div[onclick]"
          "div[onclick=foo]"
-         ":nth-last-child(  2n+1  ), foo.bar>bast:blech( .foo )" )))
+         ":nth-last-child(  2n+1  ), foo.bar>bast:blech( .foo )" )
+   1000))
 
 
