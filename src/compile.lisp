@@ -1,5 +1,9 @@
 (in-package :css)
 
+(defvar *ignore-namespaces* T
+  "ignore tag name spaces when matching, for now the parser
+   doesnt support parsing namespaced tags, so lets ignore tag namespaces")
+
 (defun attrib-includes? (node attrib value)
   (member value
 	  (cl-ppcre:split "\\s+" (buildnode:get-attribute node attrib))
@@ -32,7 +36,11 @@
 (defun make-elt-matcher ( tag )
   (lambda (%node%)
     "elt-matcher"
-    (string-equal (dom:tag-name %node%) tag)))
+    (string-equal
+     (if *ignore-namespaces*
+         (second (cl-ppcre:split ":" (dom:tag-name %node%) :limit 2))
+         (dom:tag-name %node%))
+     tag)))
 
 (defun make-attrib-matcher ( attrib match-type match-to   )
   "attrib-matcher"
