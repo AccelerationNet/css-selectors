@@ -9,6 +9,12 @@
       (xhtml:head ()
 	(xhtml:title () "My Page Title"))
       (xhtml:body ()
+        (buildnode:create-complete-element
+         buildnode:*document* "foo" "bar" ()
+         "A test namespaced element")
+        (buildnode:create-complete-element
+         buildnode:*document* "foo" "bar" ()
+         "A test namespaced element")
 	(xhtml:div '(:id "page")
 	  (setf
 	   +header+
@@ -105,6 +111,9 @@
   (iter (for (n  selector) in +nodes-and-matching-selectors-compiled+)
 	(assert-true (node-matches? n selector)
 		     n selector)))
+
+(deftest ignoring-namespaces (matcher)
+  (assert-eql 2 (length (query "bar" +doc+))))
 
 (deftest test-query (matcher query)
   (assert-eql 7 (length (query "div" +doc+)))

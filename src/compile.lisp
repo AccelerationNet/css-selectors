@@ -36,11 +36,11 @@
 (defun make-elt-matcher ( tag )
   (lambda (%node%)
     "elt-matcher"
-    (string-equal
-     (if *ignore-namespaces*
-         (second (cl-ppcre:split ":" (dom:tag-name %node%) :limit 2))
-         (dom:tag-name %node%))
-     tag)))
+    (let* ((match-to (if *ignore-namespaces*
+                        (cl-ppcre:split ":" (dom:tag-name %node%) :limit 2)
+                        (list (dom:tag-name %node%))))
+           (match-to (or (second match-to) (first match-to))))
+    (string-equal match-to tag))))
 
 (defun make-attrib-matcher ( attrib match-type match-to   )
   "attrib-matcher"
