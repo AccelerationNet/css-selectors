@@ -79,7 +79,11 @@
   (lambda (%node%)
     (and (funcall child-matcher %node%)
 	 (iter (for n in-dom-parents %node%)
-	       (thereis (funcall parent-matcher n))))))
+           ;; the root is/could be document node
+           ;; we can really only test on elements, so
+           ;; this seems pretty valid, solves github issue:5
+           (when (dom:element-p n)
+             (thereis (funcall parent-matcher n)))))))
 
 (defun make-immediatly-preceded-by-matcher (this-matcher sibling-matcher  )
   (lambda (%node%)
@@ -182,10 +186,9 @@
     (iter top
       (for tree in (alexandria:ensure-list trees))
       (iter (for n in-dom tree)
-	    (when (and (not (eql tree n))
-		       (typep n 'dom:element)
-		       (funcall matcher n))
-	      (in top (collect n)))))))
+        (when (and (dom:element-p n)
+                   (funcall matcher n))
+          (in top (collect n)))))))
 
 (defun query (inp &optional (trees buildnode:*document*))
   (%query inp trees))

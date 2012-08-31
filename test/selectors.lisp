@@ -75,7 +75,9 @@
 			  ".box.layout[id=footer]:has( .contact-info > .name + .phone )"
 			  ".box.layout[id=footer]:last-child")
 	       (,+header+ " #header:nth-last-child( 4n-1 )"
-			  "#header:first-child")
+			  "#header:first-child"
+                          "div div#header"
+                          "div#page div#header")
 	       (,(dom:parent-node +header+)
 		 ":only-child"
 		 "*:only-child")))
@@ -87,7 +89,7 @@
 	(collect (list n (parse-results selector)))))
 
 (defparameter +nodes-and-matching-selectors-compiled+
-  (iter (for (n form) in +nodes-and-matching-selectors-parsed+)	
+  (iter (for (n form) in +nodes-and-matching-selectors-parsed+)
 	(collect (list n (compile-css-node-matcher form)))))
 
 (deftest test-parser-speed (parser compiler speed)
@@ -119,7 +121,7 @@
   (assert-eql 7 (length (query "div" +doc+)))
   (assert-eql +header+ (first (query "#page > div#header" +doc+)))
   (assert-eql +header+ (first (query "#page div#header" +doc+)))
-  (assert-false (first (query "div#page" (query "div#page" +doc+)))))
+  (assert-true (first (query "div#page" (query "div#page" +doc+)))))
 
 (defun test-css-compilation-result-compilation ()
   (with-document (css:query "html")))
