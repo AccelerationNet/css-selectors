@@ -63,20 +63,20 @@
      (buildnode:with-html-document (progn ,@body nil))))
 
 (defun run-tests (&key suites tests (use-debugger T))
-  
-    (let* ((*package* (find-package :css-selectors-test))
-	   (lisp-unit::*use-debugger* use-debugger)
-	   (tests (append (alexandria:ensure-list tests)
-			  (iter (for suite in (alexandria:ensure-list suites))
-				(appending (get suite :tests)))))
-	   (out (time-and-log-around (css.info "running all tests")
-		  (with-output-to-string (*standard-output*)
-		    (lisp-unit::run-test-thunks
-		     (lisp-unit::get-test-thunks
-		      (if (null tests)
-			  (get-tests *package*)
-			  tests)))))))
-    
-      (format *standard-output*
-	      "~&~% ** TEST RESULTS: CSS-Selectors ** ~%-----------~%~A~%------ END TEST RESULTS ------~%"
-	      out)))
+  (let* ((*package* (find-package :css-selectors-test))
+         (lisp-unit:*print-failures* t)
+         (lisp-unit:*print-errors* t)
+	 (lisp-unit::*use-debugger* use-debugger)
+	 (tests (append (alexandria:ensure-list tests)
+			(iter (for suite in (alexandria:ensure-list suites))
+                          (appending (get suite :tests)))))
+         (actual-std-out *standard-output*)
+	 (out (with-output-to-string (s)
+		(let ((*standard-output*
+                        (make-broadcast-stream s actual-std-out)))
+                  (if (null tests)
+                      (lisp-unit::%run-all-thunks)
+                      (lisp-unit::%run-thunks tests))))))
+    (css.info
+     "~&~% ** TEST RESULTS: CSS-SELECTORS ** ~%-----------~%~A~%------ END TEST RESULTS ------~%"
+     out)))
