@@ -125,6 +125,11 @@
 
   )
 
+(deftest attrib-int-value-parse (parse)
+  (assert-equal
+   '(:AND (:ELEMENT "foo") (:ATTRIBUTE "bar" (:EQUALS "1")))
+   (css::parse-results "foo[bar=1]")))
+
 (deftest attrib-parse (parse)
   (assert-equal
    '(:and (:element "foo") (:attribute "bar"))

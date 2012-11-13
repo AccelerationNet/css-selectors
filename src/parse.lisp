@@ -296,7 +296,8 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
 
   (attrib-value
    #.(rule (:ident) ident)
-   #.(rule (:string) (but-quotes string)))
+   #.(rule (:string) (but-quotes string))
+   #.(rule (:integer) integer))
   
   (pseudo
    #.(rule (:|:| :IDENT) (list :pseudo ident))
