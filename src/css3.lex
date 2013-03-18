@@ -2,7 +2,7 @@
 
 h		[0-9a-f]
 nmstart		[a-z]
-nmchar		[a-z0-9-]
+nmchar		[a-z0-9-_]
 nl		\n|\r\n|\r|\f
 string1		\"([\t !#$%&(-~]|\\{nl}|\')*\"
 string2		\'([\t !#$%&(-~]|\\{nl}|\")*\'
