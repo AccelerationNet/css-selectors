@@ -17,7 +17,9 @@ w		[ \t\r\n\f]*
 range		\?{1,6}|{h}(\?{0,5}|{h}(\?{0,4}|{h}(\?{0,3}|{h}(\?{0,2}|{h}(\??|{h})))))
 
 %%
-
+"["{w}		{return [; }
+{w}"]"		{return ]; }
+{w}")"		{return ); }
 [\s\f]+		{return S;}
 
 \/\*[^*]*\*+([^/][^*]*\*+)*\/	/* ignore comments */
@@ -30,8 +32,8 @@ range		\?{1,6}|{h}(\?{0,5}|{h}(\?{0,4}|{h}(\?{0,3}|{h}(\?{0,2}|{h}(\??|{h})))))
 "^="			{return BEGINS_WITH;}
 "*="			{return SUBSTRING;}
 
-nth-(child|last-child|of-type|last-of-type)"("			{return NTH-FUNCTION;}
-{ident}"("		{return FUNCTION;}
+nth-(child|last-child|of-type|last-of-type)"("{w}			{return NTH-FUNCTION;}
+{ident}"("{w}		{return FUNCTION;}
 {string}		{return STRING;}
 {ident}			{return IDENT;}
 
@@ -72,5 +74,6 @@ nth-(child|last-child|of-type|last-of-type)"("			{return NTH-FUNCTION;}
 
 U\+{range}		{return UNICODERANGE;}
 U\+{h}{1,6}-{h}{1,6}	{return UNICODERANGE;}
+
 
 .			{return *yytext;}

@@ -185,6 +185,7 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
 
 (EVAL-WHEN (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
   (defun but-quotes (s) (subseq s 1 (- (length s) 1)))
+  (defun til-open (s) (subseq s 0 (position #\( s)))
   (defun but-last (s) (subseq s 0 (- (length s) 1)))
   (defun but-first (s) (subseq s 1))
 
@@ -238,22 +239,25 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
 		:S :IDENT :HASH :CLASS :STRING :FUNCTION :NTH-FUNCTION
 		:INCLUDES :DASHMATCH :BEGINS-WITH :ENDS-WITH :SUBSTRING
 		:integer))
-  (:precedence ((:left :|)| :s :|,| :|+| :|~| )) )
+  (:precedence ((:left :|)| :s :|,| :|+| :|~| )
+                (:left :|,|)
+                (:left :|+| :|~| :|>|)
+                (:left :s)) )
   
-  (selector #.(rule (or-sel) or-sel))
+  ;;(selector #.(rule (or-sel) or-sel))
 
-  (or-sel
-   #.(rule (comb-sel :|,| spaces or-sel)
-       (list :or comb-sel or-sel))
+  (selector
+   #.(rule (comb-sel spaces :|,| spaces selector)
+       (list :or comb-sel selector))
    #.(rule (comb-sel) comb-sel))
   
   (comb-sel
-   #.(rule (and-sel combinator comb-sel)
-       (list combinator and-sel comb-sel))
+   #.(rule (comb-sel combinator and-sel)
+       (list combinator comb-sel and-sel))
    #.(rule
 	 ;; need to handle trailing spaces here
 	 ;; to avoid s/r
-	 (and-sel spaces) and-sel))
+	 (and-sel) and-sel))
 
   (combinator 
    (:s (constantly :child))
@@ -302,10 +306,10 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
   (pseudo
    #.(rule (:|:| :IDENT) (list :pseudo ident))
    
-   #.(rule (:|:| :FUNCTION spaces selector :|)|)
-       (list :pseudo (but-last function) selector))
-   #.(rule (:|:| :NTH-FUNCTION spaces nth-expr spaces :|)| )
-       `(:nth-pseudo ,(but-last nth-function)
+   #.(rule (:|:| :FUNCTION selector :|)|)
+       (list :pseudo (til-open function) selector))
+   #.(rule (:|:| :NTH-FUNCTION nth-expr :|)| )
+       `(:nth-pseudo ,(til-open nth-function)
 		     ,@nth-expr)))
 
   (nth-expr

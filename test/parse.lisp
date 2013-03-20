@@ -20,12 +20,14 @@
    (css::parse-results " .foo>#bar "))
 
   (assert-equal
-   '(:child :everything (:child (:class "foo") (:child (:element "bar") (:hash "bas"))))
+   '(:child
+     (:child (:child :everything (:class "foo"))
+      (:element "bar"))
+     (:hash "bas"))
    (css::parse-results " * .foo bar #bas "))
 
   (assert-equal
-   '(:child (:and :everything (:class "foo"))
-     (:child (:element "bar") (:hash "bas")))
+   '(:child (:child (:and :everything (:class "foo")) (:element "bar")) (:hash "bas"))
    (css::parse-results " *.foo bar #bas "))
 
   (assert-equal
@@ -96,22 +98,22 @@
   (assert-equal
    '(:or
      (:class "foo")
-     (:immediate-child
-      (:class "bar")
-      (:immediatly-preceded-by
-       (:hash "bar")
-       (:element "bast"))))
+     (:immediatly-preceded-by
+      (:immediate-child
+       (:class "bar")
+       (:hash "bar"))
+      (:element "bast")))
    (css::parse-results " .foo , .bar > #bar + bast"))
 
   (assert-equal
    '(:or
      (:and (:element "a") (:class "foo"))
      (:or
-      (:immediate-child
-       (:and (:element "b") (:class "bar"))
-       (:immediatly-preceded-by
-	(:hash "bar")
-	(:element "bast")))
+      (:immediatly-preceded-by
+       (:immediate-child
+        (:and (:element "b") (:class "bar"))
+	(:hash "bar"))
+       (:element "bast"))
       (:and (:element "c") (:hash "foo"))))
    (css::parse-results " a.foo , b.bar > #bar + bast, c#foo"))
 
@@ -119,11 +121,11 @@
    '(:or
      (:and (:element "a") (:class "foo"))
      (:or
-      (:immediate-child
-       (:and (:element "b") (:class "bar"))
-       (:immediatly-preceded-by
-	(:hash "bar")
-	(:element "bast")))
+      (:immediatly-preceded-by
+       (:immediate-child
+        (:and (:element "b") (:class "bar"))
+	(:hash "bar"))
+       (:element "bast"))
       (:and (:element "c") (:hash "foo"))))
    (css::parse-results " a.foo , b.bar > #bar + bast, c#foo"))
 
@@ -188,17 +190,17 @@
    (css::parse-results " foo :link  "))
 
   (assert-equal
-   '(:and (:element "label")
-     (:and
-      (:pseudo "not" (:attribute "for"))
-      (:pseudo "has" (:element "a"))))
+   '(:and
+     (:and (:element "label")
+      (:pseudo "not" (:attribute "for")))
+     (:pseudo "has" (:element "a")))
    (css::parse-results " label:not([for]):has(a)"))
 
   (assert-equal
-   '(:and (:element "label")
-     (:and
-      (:pseudo "not" (:attribute "for"))
-      (:pseudo "has" (:and (:element "a") (:class "bar")))))
+   '(:and
+     (:and (:element "label")
+      (:pseudo "not" (:attribute "for")))
+     (:pseudo "has" (:and (:element "a") (:class "bar"))))
    (css::parse-results " label:not(  [for]   ):has( a.bar)"))
 
   (assert-equal
@@ -206,10 +208,10 @@
      (:or (:attribute "for")
       (:or (:and :everything (:class "foo"))
        (:immediate-child
-	(:element "a")
 	(:immediate-child
-	 (:element "b")
-	 (:element "c"))))))
+         (:element "a")
+	 (:element "b"))
+        (:element "c")))))
    (css::parse-results " :not(  [for],*.foo  ,  a>b > c )"))
   )
 
