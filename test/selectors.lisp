@@ -129,3 +129,23 @@
 (deftest test-parent-overflow (compiler)
  (css:query "q > html" +doc+))
 
+(defun parse-xml (string)
+  (cxml:parse string (cxml-dom:make-dom-builder)))
+
+(defparameter +issue-8-doc+
+  (parse-xml "<div id=\"it\" class=\"first\"><div class=\"second\"><div></div></div></div>"))
+
+(deftest select-failing-child-relationships (parse issue-8)
+  (assert-eql
+   1
+   (length
+    (css:query "div > div > div" +issue-8-doc+)))
+  (assert-eql
+   1
+   (length
+    (css:query ".first > .second > div" +issue-8-doc+)))
+  (assert-eql
+   1
+   (length
+    (css:query "#it > .second > div" +issue-8-doc+))))
+

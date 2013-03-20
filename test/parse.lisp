@@ -188,17 +188,17 @@
    (css::parse-results " foo :link  "))
 
   (assert-equal
-   '(:and
-     (:and (:element "label")
-      (:pseudo "not" (:attribute "for")))
-     (:pseudo "has" (:element "a")))
+   '(:and (:element "label")
+     (:and
+      (:pseudo "not" (:attribute "for"))
+      (:pseudo "has" (:element "a"))))
    (css::parse-results " label:not([for]):has(a)"))
 
   (assert-equal
-   '(:and
-     (:and (:element "label")
-      (:pseudo "not" (:attribute "for")))
-     (:pseudo "has" (:and (:element "a") (:class "bar"))))
+   '(:and (:element "label")
+     (:and
+      (:pseudo "not" (:attribute "for"))
+      (:pseudo "has" (:and (:element "a") (:class "bar")))))
    (css::parse-results " label:not(  [for]   ):has( a.bar)"))
 
   (assert-equal
@@ -212,6 +212,26 @@
 	 (:element "c"))))))
    (css::parse-results " :not(  [for],*.foo  ,  a>b > c )"))
   )
+
+(deftest parse-failing-child-relationships (parse issue-8)
+  (assert-equal
+   `(:IMMEDIATE-CHILD
+     (:IMMEDIATE-CHILD (:hash "it")
+      (:CLASS "second"))
+     (:ELEMENT "div"))
+   (css::parse-results "#it > .second > div"))
+  (assert-equal
+   `(:IMMEDIATE-CHILD
+     (:IMMEDIATE-CHILD (:CLASS "first")
+      (:CLASS "second"))
+     (:ELEMENT "div"))
+   (css::parse-results ".first > .second > div"))
+  (assert-equal
+   `(:IMMEDIATE-CHILD
+     (:IMMEDIATE-CHILD (:ELEMENT "div")
+      (:ELEMENT "div"))
+     (:ELEMENT "div"))
+   (css::parse-results "div > div > div")))
 
 
 
