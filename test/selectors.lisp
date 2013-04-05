@@ -78,8 +78,11 @@
 			  "#header:first-child"
                           "div div#header"
                           "div#page div#header")
-	       (,(dom:parent-node +header+)
+	       (,(first (last (css::parent-elements +header+)))
 		 ":only-child"
+		 "*:only-child")
+               (,(first (css::child-elements +footer+))
+                ":only-child"
 		 "*:only-child")))
 	(iter (for s in selectors)
 	      (in top (collect (list n s))))))
@@ -104,10 +107,11 @@
 			   n selector))))
 
 (deftest test-compiler-execution-speed (compiler execution-speed speed)
-  (iter (for i from 0 to 1000)
-	(iter (for (n  selector) in +nodes-and-matching-selectors-compiled+)
-	      (assert-true (%node-matches? n selector)
-			   n selector))))
+  (iter (for i from 0 to 1)
+    (iter (for (n  selector) in +nodes-and-matching-selectors-compiled+)
+      (for (_ text-selector) in +nodes-and-matching-selectors+)
+      (assert-true (%node-matches? n selector)
+                   n text-selector))))
 
 (deftest test-matcher (matcher)
   (iter (for (n  selector) in +nodes-and-matching-selectors-compiled+)
@@ -124,7 +128,7 @@
   (assert-true (first (query "div#page" (query "div#page" +doc+)))))
 
 (defun test-css-compilation-result-compilation ()
-  (with-document (css:query "html")))
+  (buildnode:with-document (css:query "html")))
 
 (deftest test-parent-overflow (compiler)
  (css:query "q > html" +doc+))

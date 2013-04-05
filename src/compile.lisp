@@ -6,7 +6,7 @@
 
 (defun attrib-includes? (node attrib value)
   (member value
-	  (cl-ppcre:split "\\s+" (buildnode:get-attribute node attrib))
+	  (cl-ppcre:split "\\s+" (get-attribute node attrib))
 	  :test #'string-equal))
 
 (defun make-or-matcher (forms)
@@ -37,8 +37,8 @@
   (lambda (%node%)
     "elt-matcher"
     (let* ((match-to (if *ignore-namespaces*
-                        (cl-ppcre:split ":" (dom:tag-name %node%) :limit 2)
-                        (list (dom:tag-name %node%))))
+                        (cl-ppcre:split ":" (tag-name %node%) :limit 2)
+                        (list (tag-name %node%))))
            (match-to (or (second match-to) (first match-to))))
     (string-equal match-to tag))))
 
@@ -63,11 +63,7 @@
 			  :test #'string-equal ))
       (:exists (buildnode:get-attribute %node% attrib)))))
 
-(defun parent-element (n)
-  "gets the parent dom:element (rather than ever returning the document node)"
-  (let ((p (dom:parent-node n)))
-    (when (and p (dom:element-p p))
-      p)))
+
 
 (defun make-immediate-child-matcher (parent-matcher child-matcher)
   (lambda (%node%)
@@ -78,24 +74,24 @@
 (defun make-child-matcher (parent-matcher child-matcher  )
   (lambda (%node%)
     (and (funcall child-matcher %node%)
-	 (iter (for n in-dom-parents %node%)
+	 (iter (for n in (parent-elements %node%))
            ;; the root is/could be document node
            ;; we can really only test on elements, so
            ;; this seems pretty valid, solves github issue:5
-           (when (dom:element-p n)
+           (when (element-p n)
              (thereis (funcall parent-matcher n)))))))
 
 (defun make-immediatly-preceded-by-matcher (this-matcher sibling-matcher  )
   (lambda (%node%)
     (and (funcall this-matcher %node%)
-	 (dom:previous-sibling %node%)
-	 (funcall sibling-matcher (dom:previous-sibling %node%)))))
+	 (previous-sibling %node%)
+	 (funcall sibling-matcher (previous-sibling %node%)))))
 
 (defun make-preceded-by-matcher (this-matcher sibling-matcher  )
   (lambda (%node%)
     (and (funcall this-matcher %node%)
-	 (iter (for n initially (dom:previous-sibling %node%)
-		    then (dom:previous-sibling n))
+	 (iter (for n initially (previous-sibling %node%)
+		    then (previous-sibling n))
 	       (while n)
 	       (thereis (funcall sibling-matcher n))))))
 
@@ -180,15 +176,16 @@
 	 `(load-time-value (compile-css-node-matcher ,inp))
 	 inp)))
 
+(defgeneric %do-query (matcher node &key first?)
+  (:documentation "matches selector inp against the node
+    if first? is T then return the first matching node"))
+
 (defun %query (inp &optional (trees buildnode:*document*))
   (let* ((matcher (compile-css-node-matcher inp)))
     ;; ensure that queries on a list dont return the items in that list
-    (iter top
+    (iter
       (for tree in (alexandria:ensure-list trees))
-      (iter (for n in-dom tree)
-        (when (and (dom:element-p n)
-                   (funcall matcher n))
-          (in top (collect n)))))))
+      (appending (%do-query matcher tree)))))
 
 (defun query (inp &optional (trees buildnode:*document*))
   (%query inp trees))
