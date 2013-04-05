@@ -4,12 +4,11 @@
       (:use :common-lisp :asdf))))
 
 (in-package :net.acceleration.css-selectors.system)
- 
+
 (defsystem :css-selectors
     :description "An implementation of css selectors"
     :author "<programmers@acceleration.net>"
-    :licence "LGPL (or talk to me)"
-    :version "0.1"
+    :licence "BSD"
     :components
     ((:module :src
 	      :serial T
