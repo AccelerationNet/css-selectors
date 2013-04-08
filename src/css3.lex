@@ -1,7 +1,7 @@
 %option case-insensitive
 
 h		[0-9a-f]
-nmstart		[a-z]
+nmstart		[_a-z]
 nmchar		[a-z0-9-_]
 nl		\n|\r\n|\r|\f
 string1		\"([\t !#$%&(-~]|\\{nl}|\')*\"

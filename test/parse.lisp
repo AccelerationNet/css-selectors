@@ -39,7 +39,9 @@
 
 (deftest parse-underscores (parse)
   (assert-equal '(:class "foo-bar_bast")
-   (css::parse-results " .foo-bar_bast ")))
+   (css::parse-results " .foo-bar_bast "))
+  (assert-equal '(:class "_foo")
+   (css::parse-results " ._foo ")))
 
 (deftest nth-x-pseudo (parse)
   (assert-equal
