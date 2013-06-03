@@ -3,7 +3,9 @@
 ;;;; COMMON UTILS COPIED SO AS NOT TO DEPEND ON my utils lib
 
 (defparameter +common-white-space-trimbag+
-  '(#\space #\newline #\return #\tab #\no-break_space))
+  '(#\space #\newline #\return #\tab
+    #\u00A0 ;; this is #\no-break_space
+    ))
 
 (defun trim-whitespace (s)
   (string-trim +common-white-space-trimbag+ s))
