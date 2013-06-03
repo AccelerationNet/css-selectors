@@ -360,6 +360,9 @@ is replaced with replacement. [FROM http://cl-cookbook.sourceforge.net/strings.h
     ( )))
 
 (defun parse-results (&optional (inp "#foo, .foo #bar .bast,   .foo > bar[src~=blech],  .foo:hover"))
+  "Mostly used for debugging purposes
+
+   Takes a string CSS selector and turns it into an AST"
   (setf inp (trim-whitespace inp))
   (yacc:parse-with-lexer (make-css3-lexer inp) *css3-selector-parser*))
 

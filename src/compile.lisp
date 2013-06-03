@@ -159,6 +159,8 @@
      (list expression))))
 
 (defun compile-css-node-matcher (inp)
+  "Given a string, returns a matcher-function of a single node that will tell
+   you whether or not the node matches"
   (typecase inp
     ((or string list) (make-node-matcher inp))
     (function inp)))
@@ -167,6 +169,7 @@
   (funcall (compile-css-node-matcher inp) node))
 
 (defun node-matches? (node inp)
+  "Given a node and a CSS selector, see if the given node matches that selector"
   (%node-matches? node inp))
 
 (define-compiler-macro node-matches? (node inp &environment e)
@@ -188,6 +191,8 @@
       (appending (%do-query matcher tree)))))
 
 (defun query (inp &optional (trees buildnode:*document*))
+  "Given a css selector, attempt to find the matching nodes in the passed in
+   dom-trees (defaults to the document)"
   (%query inp trees))
 
 (define-compiler-macro query (inp &optional (trees 'buildnode:*document*) &environment e)
