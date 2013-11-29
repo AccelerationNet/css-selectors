@@ -17,14 +17,22 @@ Similar to jQuery('css-selector', NodeList or *document*)
 
 Returns a list of matching nodes. 
 
-if the second argument is a css-selector, compile it (as with compile-css-node-matcher)
+if the first argument is a css-selector string, compile it (as with compile-css-node-matcher)
 into a matcher function and call query again with it
 
-if the second argument is a function, it is assumed to take a single node
+if the first argument is a function, it is assumed to take a single node
 and to test whether or not that node matches the css-selector match function
 
 If the css-selector-string is constantp, it will be compiled at compile time
 
+The second argument is either a dom-node, a list of dom-nodes or the a dom document.  
+It defaults to buildnode:*document*.
+
+For full examples, please see the test suite, but a basic query call looks like:
+```
+(css-selectors:query "a" document) 
+```
+which will return a list of all "a" tags in the document.
 
 ### node-matches?
 
