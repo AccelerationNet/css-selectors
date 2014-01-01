@@ -26,7 +26,7 @@
 
 (asdf:defsystem css-selectors-test
   :description "test for the css-selector library"
-  :depends-on (:css-selectors :lisp-unit :buildnode-xhtml)
+  :depends-on (:css-selectors :lisp-unit2 :buildnode-xhtml)
   :components ((:module :test
 			:serial T
 			:components
@@ -37,6 +37,8 @@
 
 (defmethod asdf:perform ((o asdf:test-op) (c (eql (find-system :css-selectors))))
   (asdf:oos 'asdf:load-op :css-selectors-test)
-  (funcall (intern "RUN-TESTS" :css-selectors-test)
-	   :use-debugger nil))
+  (let ((*package* (find-package :css-selectors-test)))
+    (eval (read-from-string "
+             (run-tests)
+      "))))
 

@@ -1,5 +1,5 @@
 (common-lisp:defpackage :css-selectors-test
-  (:use :common-lisp :iterate :lisp-unit :css)
+  (:use :common-lisp :iterate :lisp-unit2-asserts :css)
   (:shadow :run-tests))
 
 (common-lisp:in-package :css-selectors-test)
@@ -11,35 +11,15 @@
       (decode-universal-time time)
     (format stream "~2,'0d:~2,'0d:~2,'0d "  h min s)))
 
-(defun css.info (message &rest args)
-  (format *standard-output* "~&")
-  (log-time (get-universal-time) *standard-output*)
-  (apply #'format *standard-output* message args)
-  (format *standard-output* "~%"))
+(defun css.info ( tag message &rest args)
+  (setf tag (alexandria:ensure-list tag))
+  (format lisp-unit2:*test-stream* "~&")
+  (log-time (get-universal-time) lisp-unit2:*test-stream*)
+  (when (apply #'format lisp-unit2:*test-stream* tag))
+  (apply #'format lisp-unit2:*test-stream* message args)
+  (format lisp-unit2:*test-stream* "~%"))
 
-(EVAL-WHEN (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
-  (defmacro log-around ((log-name message &rest args) &body body)
-    "Logs the beginning and end of a body.  ARGS are evaluated twice"
-    (let  ((gmessage (gensym "GMESSAGE-")))
-      `(let ((,gmessage ,message))
-	 (flet ((msg (&optional tag)
-		  (format nil "~A ~a"
-			  tag ,gmessage)))
-	   (,log-name (msg "BEGIN") ,@args)
-	   (multiple-value-prog1	     
-	       (progn ,@body)
-	     (,log-name (msg "  END") ,@args))))))
-
-  (defmacro time-and-log-around ((log-name message &rest args) &body body)
-    "Logs the beginning and end of a body.  ARGS are evaluated twice"
-    (let  ((trace-output (gensym "TRACE-OUTPUT-")))
-      `(let (,trace-output) ;;leave nil so the first log call doesn't print an extra newline
-	 (log-around (,log-name ,(concatenate 'string message "~@[~%~a~]") ,@args ,trace-output)
-	   (setf ,trace-output
-		 (make-array 10 :element-type 'character :adjustable T :fill-pointer 0))
-	   (with-output-to-string (*trace-output* ,trace-output)
-	     (time (progn ,@body))))))))
-
+;; import internal css-selector symbols
 (with-package-iterator (sym '(:css-selectors) :internal :external)
   (iter (multiple-value-bind (more? symbol accessibility pkg) (sym)
 	  (declare (ignore accessibility))
@@ -50,33 +30,19 @@
 	  (while more?))))
 
 (defmacro deftest (name (&rest args) &body body)
-  (iter (for tag in args)
-	(setf (get tag :tests)
-	      (union (alexandria:ensure-list (get tag :tests))
-		     (list name))))
-  `(lisp-unit:define-test ,name
-     (time-and-log-around (css.info "Running Test ~A" ',name)
-       ,@body)))
+  `(lisp-unit2:define-test ,name (:tags '(,@args))
+    ,@body))
 
 (defmacro test-w/doc (name (&rest args) &body body)
   `(deftest ,name (,@args)
      (buildnode:with-html-document (progn ,@body nil))))
 
-(defun run-tests (&key suites tests (use-debugger T))
-  (let* ((*package* (find-package :css-selectors-test))
-         (lisp-unit:*print-failures* t)
-         (lisp-unit:*print-errors* t)
-	 (lisp-unit::*use-debugger* use-debugger)
-	 (tests (append (alexandria:ensure-list tests)
-			(iter (for suite in (alexandria:ensure-list suites))
-                          (appending (get suite :tests)))))
-         (actual-std-out *standard-output*)
-	 (out (with-output-to-string (s)
-		(let ((*standard-output*
-                        (make-broadcast-stream s actual-std-out)))
-                  (if (null tests)
-                      (lisp-unit::%run-all-thunks)
-                      (lisp-unit::%run-thunks tests))))))
-    (css.info
-     "~&~% ** TEST RESULTS: CSS-SELECTORS ** ~%-----------~%~A~%------ END TEST RESULTS ------~%"
-     out)))
+(defun run-tests (&key suites tests)
+  (let* ((*package* (find-package :css-selectors-test)))
+    (lisp-unit2:run-tests
+     :name "css-selectors"
+     :tags suites
+     :tests tests
+     :package (when (and (null suites) (null tests))
+                :css-selectors-test)
+     :run-contexts #'lisp-unit2:with-summary-context)))
