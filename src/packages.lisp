@@ -23,6 +23,7 @@
     (:nicknames :css)
   (:use :cl :iterate)
   (:export :query
+           :query1
            :node-matches?
            :parse-results
            :compile-css-node-matcher))
