@@ -37,11 +37,9 @@
            node))
        elt)
       (let ((matches '()))
-        (stp:filter-recursively
-         (lambda (node)
-           (when (and (element-p node) (funcall matcher node))
-             (push node matches)))
-         elt)
+        (stp:do-recursively (node elt)
+          (when (and (element-p node) (funcall matcher node))
+            (push node matches)))
         (nreverse matches))))
 
 (defmethod %do-query (matcher (elt stp:element) &key (first? nil))
