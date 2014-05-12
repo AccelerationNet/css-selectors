@@ -23,9 +23,9 @@
     (:nicknames :css)
   (:use :cl :iterate)
   (:export :query
-	   :node-matches?
-	   :parse-results
-	   :compile-css-node-matcher))
+           :node-matches?
+           :parse-results
+           :compile-css-node-matcher))
 
 
 (defpackage :css-selectors.pseudo
@@ -33,4 +33,4 @@
   (:shadow :not)
   (:use :css :iter :cl)
   (:export #:not #:has #:is #:root #:first-child #:last-child
-	   #:only-child #:nth-child #:nth-last-child))
+           #:only-child #:nth-child #:nth-last-child #:empty))
