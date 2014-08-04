@@ -32,36 +32,39 @@
   ;; css uses one based indexes http://www.w3.org/TR/css3-selectors/#nth-child-pseudo
   (let ((pos (+ 1 (position node (child-nodes (parent-element node))))))
     (eql (if (and mul (not (zerop mul)))
-	     (mod pos mul)
-	     pos)
-	 (if (plusp add)
-	     add
-	     (+ mul add)))))
+             (mod pos mul)
+             pos)
+         (if (plusp add)
+             add
+             (+ mul add)))))
 
 (defun pseudo:nth-last-child (node mul add)
   ;; css uses one based indexes http://www.w3.org/TR/css3-selectors/#nth-child-pseudo
   (let* ((kids (child-nodes (parent-element node)))
-	 (pos (- (length kids) (position node kids))))
+         (pos (- (length kids) (position node kids))))
     (eql (if (and mul (not (zerop mul)))
-	     (mod pos mul)
-	     pos)
-	 (if (plusp add)
-	     add
-	     (+ mul add)))))
+             (mod pos mul)
+             pos)
+         (if (plusp add)
+             add
+             (+ mul add)))))
 
 (defun pseudo:last-child (node &optional sub-sel-function)
   (when sub-sel-function
     (error "last-child pseudo selector doesnt support sub-selection arguments"))
   (and (parent-element node)
        (let ((kids (child-nodes (parent-element node))))
-	 (eql node (elt kids (- (length kids) 1))))))
+         (eql node (elt kids (- (length kids) 1))))))
 
 (defun pseudo:only-child (node &optional sub-sel-function)
   (when sub-sel-function
     (error "only-child pseudo selector doesnt support sub-selection arguments"))
   (and (parent-node node)
        (let ((kids (child-nodes (parent-node node))))
-	 (and (= (length kids) 1)
+         (and (= (length kids) 1)
               (eql node (elt kids 0))))))
 
-
+(defun pseudo:empty (node &optional sub-sel-function)
+  (when sub-sel-function
+    (error "empty pseudo selector doesnt support sub-selection arguments"))
+  (null (child-nodes node)))

@@ -190,13 +190,33 @@
       (for tree in (alexandria:ensure-list trees))
       (appending (%do-query matcher tree)))))
 
+(defun %query1 (inp &optional (trees buildnode:*document*))
+  (let* ((matcher (compile-css-node-matcher inp)))
+    ;; ensure that queries on a list dont return the items in that list
+    (iter
+     (for tree in (alexandria:ensure-list trees))
+     (thereis (%do-query matcher tree :first? t)))))
+
 (defun query (inp &optional (trees buildnode:*document*))
   "Given a css selector, attempt to find the matching nodes in the passed in
    dom-trees (defaults to the document)"
   (%query inp trees))
 
+(defun query1 (inp &optional (trees buildnode:*document*))
+  "Given a css selector, attempt to find the first matching node in
+   the passed in dom-trees (defaults to the document)"
+  (%query1 inp trees))
+
 (define-compiler-macro query (inp &optional (trees 'buildnode:*document*) &environment e)
   `(%query
+    ,(if (constantp inp e)
+         `(load-time-value (compile-css-node-matcher ,inp))
+         inp)
+    ,trees))
+
+(define-compiler-macro query1 (inp &optional (trees 'buildnode:*document*)
+                                   &environment e)
+  `(%query1
     ,(if (constantp inp e)
          `(load-time-value (compile-css-node-matcher ,inp))
          inp)
