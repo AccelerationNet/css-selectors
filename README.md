@@ -1,10 +1,11 @@
 # css-selectors: a jquery-style dom query language
 
-CSS-selectors is a query language for finding specific nodes in cxml
-dom documents and dom sub trees.  CSS-selectors was written to work
-with cxml dom documents and elements.  However, a compatability layer
-also allows it to work with cxml-stp (by loading :css-selectors-stp
-first)
+CSS-selectors is a query language for finding specific nodes in dom
+documents and sub trees.  CSS-selectors works with:
+
+ * [cxml](http://common-lisp.net/project/cxml/) dom
+ * [cxml-stp](http://www.lichteblau.com/cxml-stp/) (load :css-selectors-stp)
+ * [cl-html5-parser](https://github.com/copyleft/cl-html5-parser) simple-tree (load :css-selectors-simple-tree)
 
 ## API
 
