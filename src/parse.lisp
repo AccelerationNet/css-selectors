@@ -4,7 +4,8 @@
 
 (defparameter +common-white-space-trimbag+
   '(#\space #\newline #\return #\tab
-    #\u00A0 ;; this is #\no-break_space
+    #+sbcl #\no-break_space
+    #-sbcl #\u00A0 ;; this is #\no-break_space
     ))
 
 (defun trim-whitespace (s)
